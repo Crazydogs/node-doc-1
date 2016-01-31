@@ -11,3 +11,7 @@ Nodejs 简体中文版文档，翻译自 Nodejs 官方文档。
 #### 关注
 
 - [Github repo](https://github.com/pinggod/node-doc)
+
+#### LICENICE
+
+MIT
