@@ -1,6 +1,6 @@
 # Summary
 
-- [About](doc/README.md)
+- [About](doc/about.md)
 - [Synopsis](doc/synopsis.md)
 - [Assertion Testing](doc/assertion-testing.md)
 - [Buffer](doc/buffer.md)

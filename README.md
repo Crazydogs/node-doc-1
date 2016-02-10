@@ -15,9 +15,9 @@ Nodejs 简体中文版文档，翻译自 Nodejs 官方文档。
 #### 进度
 
 |   进度    |     章节              |
-|:---------:|----------------------|
-|  未开始   |  README  |
-|  未开始   |  synopsis  |
+|:---------:|:----------------------|
+|  已完成   |  about  |
+|  已完成   |  synopsis  |
 |  未开始   |  assertion-testing  |
 |  未开始   |  buffer  |
 |  未开始   |  c-and-c-plus-plus-addons  |
