@@ -2,9 +2,7 @@
 
 <div class="s s3"></div>
 
-`assert` 模块提供了一系列的断言测试接口，用于测试
-
-
+`assert` 模块提供了一系列的测试接口。这些接口的设计初衷是服务于 Node.js 的开发和测试，现在也可以通过 `require('assert')` 在 Node.js 开发的应用中使用。不过有一点要
 
 
 
