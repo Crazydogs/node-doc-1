@@ -18,7 +18,7 @@ Nodejs 简体中文版文档，翻译自 Nodejs 官方文档。
 |:---------:|:----------------------|
 |  已完成   |  about  |
 |  已完成   |  synopsis  |
-|  未开始   |  assertion-testing  |
+|  已完成   |  assertion-testing  |
 |  未开始   |  buffer  |
 |  未开始   |  c-and-c-plus-plus-addons  |
 |  未开始   |  child-processes  |
