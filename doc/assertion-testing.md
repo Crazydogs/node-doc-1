@@ -6,7 +6,7 @@
 
 当前 `assert` 模块的 API 处于锁定状态，这意味着该模块将不再添加新接口，也不会再修改既有的接口规范。
 
-#### assert(value[, message])
+## assert(value[, message])
 
 等同于 `assert.ok()`:
 
@@ -24,7 +24,7 @@ assert(false, "it's false")
 // => AssertionError: it's false
 ```
 
-#### assert.deepEqual(actual, expected[, message])
+## assert.deepEqual(actual, expected[, message])
 
 判断参数 `actual` 和 `expected` 是否相等，使用 `==` 比较原始值（primitive value)。
 
@@ -74,7 +74,7 @@ assert.deepEqual(obj1, obj4);
 
 如果 actual 和 expected 不相等，则抛出 `AssertionError` 错误和 `message` 错误信息。这里的 `message` 参数为可选字符串参数，如果未传入该参数，系统自动分配默认的错误信息。
 
-#### assert.deepStrictEqual(actual, expected[, message])
+## assert.deepStrictEqual(actual, expected[, message])
 
 与 `assert.deepEqual()` 的作用基本相同，两者的区别在于，`assert.deepStrictEqual()` 使用 `===` 判断原始值是否相等：
 
@@ -91,7 +91,7 @@ assert.deepStrictEqual({a:1}, {a:'1'});
 
 如果 actual 和 expected 不相等，则抛出 `AssertionError` 错误和 `message` 错误信息。这里的 `message` 参数为可选字符串参数，如果未传入该参数，系统自动分配默认的错误信息。
 
-#### assert.doesNotThrow(block[, error][, message])
+## assert.doesNotThrow(block[, error][, message])
 
 `assert.doesNotThrow()` 期望传入的 `block` 函数不会抛出错误，更多信息请查看 [assert.thorws()](#assertthrowsblock-error-message)。
 
@@ -134,7 +134,7 @@ assert.doesNotThrow(
 // Throws: AssertionError: Got unwanted exception (TypeError). Whoops
 ```
 
-#### assert.equal(actual, expected[, message])
+## assert.equal(actual, expected[, message])
 
 使用 `==` 比较 `actual` 参数和 `expected` 参数是否相等，如果参数是原始值，则比较值是否相等；如果参数是引用值，则比较内存地址是否相等：
 
@@ -154,7 +154,7 @@ assert.equal({a: {b: 1}}, {a: {b: 1}});
 
 如果 actual 和 expected 不相等，则抛出 `AssertionError` 错误和 `message` 错误信息。这里的 `message` 参数为可选字符串参数，如果未传入该参数，系统自动分配默认的错误信息。
 
-#### assert.fail(actual, expected, message, operator) 
+## assert.fail(actual, expected, message, operator) 
 
 抛出 `AssertionError`。如果参数 `message == undefined`，则错误信息为 `actual #{operator} expected`；如果参数 `message != undefined`，则错误信息为参数 `message`：
 
@@ -168,7 +168,7 @@ assert.fail(1, 2, 'whoops', '>');
 // AssertionError: whoops
 ```
 
-#### assert.ifError(value)
+## assert.ifError(value)
 
 如果 `value` 为真值（译者注：真值意指 `!!value === true`)，则抛出 `value`，这对于测试回调函数中的 `error` 参数很有用：
 
@@ -181,7 +181,7 @@ assert.ifError('error') // Throws 'error'
 assert.ifError(new Error()); // Throws Error
 ```
 
-#### assert.notDeepEqual(actual, expected[, message])
+## assert.notDeepEqual(actual, expected[, message])
 
 与 [assert.deepEqual()](#assertdeepequalactual-expected-message) 的功能相反，测试 `actual` 参数和 `expected` 参数是否不相等：
 
@@ -220,7 +220,7 @@ assert.notDeepEqual(obj1, obj4);
 
 如果 actual 和 expected 相等，则抛出 `AssertionError` 错误和 `message` 错误信息。这里的 `message` 参数为可选字符串参数，如果未传入该参数，系统自动分配默认的错误信息。
 
-#### assert.notDeepStrictEqual(actual, expected[, message])
+## assert.notDeepStrictEqual(actual, expected[, message])
 
 与 [assert.notDeepStrictEqual()](#assertdeepstrictequalactual-expected-message) 的功能相反，测试 `actual` 参数和 `expected` 参数是否不相等：
 
@@ -236,7 +236,7 @@ assert.notDeepStrictEqual({a:1}, {a:'1'});
 
 如果 actual 和 expected 相等，则抛出 `AssertionError` 错误和 `message` 错误信息。这里的 `message` 参数为可选字符串参数，如果未传入该参数，系统自动分配默认的错误信息。
 
-#### assert.notEqual(actual, expected[, message])
+## assert.notEqual(actual, expected[, message])
 
 使用 `!=` 比较 `actual` 参数和 `expected` 参数是否不相等，如果参数是原始值，则比较值是否不相等；如果参数是引用值，则比较内存地址是否不相等：
 
@@ -255,7 +255,7 @@ assert.notEqual(1, '1');
 
 如果 actual 和 expected 相等，则抛出 `AssertionError` 错误和 `message` 错误信息。这里的 `message` 参数为可选字符串参数，如果未传入该参数，系统自动分配默认的错误信息。
 
-#### assert.notStrictEqual(actual, expected[, message])
+## assert.notStrictEqual(actual, expected[, message])
 
 使用 `!==` 比较 `actual` 参数和 `expected` 参数是否不相等：
 
@@ -274,7 +274,7 @@ assert.notStrictEqual(1, '1');
 
 如果 actual 和 expected 相等，则抛出 `AssertionError` 错误和 `message` 错误信息。这里的 `message` 参数为可选字符串参数，如果未传入该参数，系统自动分配默认的错误信息。
 
-#### assert.ok(value[, message])
+## assert.ok(value[, message])
 
 测试 `value` 是否为真值，等同于 `assert.equal(!!value, true, message)`:
 
@@ -299,7 +299,7 @@ assert.ok(false, 'it\'s false');
 
 如果 `value` 不为真值，则抛出 `AssertionError` 错误和 `message` 错误信息。这里的 `message` 参数为可选字符串参数，如果未传入该参数，系统自动分配默认的错误信息。
 
-#### assert.strictEqual(actual, expected[, message])
+## assert.strictEqual(actual, expected[, message])
 
 使用 `===` 比较 `actual` 参数和 `expected` 参数是否相等：
 
@@ -318,7 +318,7 @@ assert.strictEqual(1, '1');
 
 如果 actual 和 expected 不相等，则抛出 `AssertionError` 错误和 `message` 错误信息。这里的 `message` 参数为可选字符串参数，如果未传入该参数，系统自动分配默认的错误信息。
 
-#### assert.throws(block[, error][, message])
+## assert.throws(block[, error][, message])
 
 `assert.throws()` 期望传入的 `block` 函数会抛出错误（译者注：如果 `block` 函数抛出错误，`assert.throws()` 无返回值，表示正常；如果未抛出错误，则 `assert.throws()` 抛出 AssertionError 错误），可选参数 `error` 可以是构造函数、正则表达式和自定义的检验函数。
 
