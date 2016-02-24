@@ -1108,11 +1108,11 @@ console.log(buf);
 
 ## Class: SlowBuffer
 
-`SlowBuffer` 类用于创建不放入内存池的 Buffer 实例。
+`SlowBuffer` 类用于创建 un-pooled（不放入内存池？）的 Buffer 实例。
 
 为了降低创建 Buffer 实例的开销，避免 Buffer 实例冗杂凌乱的现象，默认情况下对于小于 4KB 的 Buffer 实例使用单个大内存对象存储和管理。这种方式可以有效提高性能和内存利用率，避免 V8 频繁追踪和清理过多的 `Persistent` 对象。
 
-有时候，开发者希望对内存中的一小块空间保留一个不确定的时间，针对这种情况，就可以使用 `SlowBuffer` 类创建一个不放入内存池的 Buffer 实例，然后通过内存拷贝获取目标数据：
+有时候，开发者希望对内存中的一小块空间保留一个不确定的时间，针对这种情况，就可以使用 `SlowBuffer` 类创建 un-pooled（不放入内存池？）的 Buffer 实例，然后通过内存拷贝获取目标数据：
 
 ```js
 // need to keep around a few small chunks of memory

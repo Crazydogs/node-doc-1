@@ -2,7 +2,7 @@ Nodejs 简体中文版文档，翻译自 Nodejs 官方文档。
 
 #### 版本
 
-当前版本翻译自 Nodejs v5.6.0 官方文档。
+当前版本翻译自 Nodejs v5.x 官方文档。
 
 #### 贡献者
 
@@ -20,7 +20,7 @@ Nodejs 简体中文版文档，翻译自 Nodejs 官方文档。
 |  已完成   |  synopsis  |
 |  已完成   |  assertion-testing  |
 |  已完成   |  buffer  |
-|  未开始   |  c-and-c-plus-plus-addons  |
+|  已完成   |  c-and-c-plus-plus-addons  |
 |  未开始   |  child-processes  |
 |  未开始   |  cluster  |
 |  未开始   |  console  |
