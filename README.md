@@ -21,7 +21,7 @@ Nodejs 简体中文版文档，翻译自 Nodejs 官方文档。
 |  已完成   |  assertion-testing  |
 |  已完成   |  buffer  |
 |  已完成   |  c-and-c-plus-plus-addons  |
-|  未开始   |  child-processes  |
+|  已完成   |  child-processes  |
 |  未开始   |  cluster  |
 |  未开始   |  console  |
 |  未开始   |  crypto  |
