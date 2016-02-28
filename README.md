@@ -8,7 +8,7 @@ Nodejs 简体中文版文档，翻译自 Nodejs 官方文档。
 
 - [Sean Sun](http://pinggod.com)
 
-#### 关注
+#### 参与
 
 - [Github repo](https://github.com/pinggod/node-doc)
 
@@ -23,7 +23,7 @@ Nodejs 简体中文版文档，翻译自 Nodejs 官方文档。
 |  已完成   |  c-and-c-plus-plus-addons  |
 |  已完成   |  child-processes  |
 |  未开始   |  cluster  |
-|  未开始   |  console  |
+|  已完成   |  console  |
 |  未开始   |  crypto  |
 |  已完成   |  debugger  |
 |  未开始   |  dns  |
@@ -51,7 +51,7 @@ Nodejs 简体中文版文档，翻译自 Nodejs 官方文档。
 |  未开始   |  udp-datagram  |
 |  已完成   |  url  |
 |  已完成   |  utilities  |
-|  未开始   |  v8  |
+|  已完成   |  v8  |
 |  未开始   |  vm  |
 |  未开始   |  zlib  |
 
