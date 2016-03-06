@@ -22,7 +22,7 @@ Nodejs 简体中文版文档，翻译自 Nodejs 官方文档。
 |  已完成   |  buffer  |
 |  已完成   |  c-and-c-plus-plus-addons  |
 |  已完成   |  child-processes  |
-|  未开始   |  cluster  |
+|  已完成   |  cluster  |
 |  已完成   |  console  |
 |  未开始   |  crypto  |
 |  已完成   |  debugger  |
@@ -39,7 +39,7 @@ Nodejs 简体中文版文档，翻译自 Nodejs 官方文档。
 |  已完成   |  os  |
 |  未开始   |  path  |
 |  未开始   |  process  |
-|  未开始   |  punycode  |
+|  已完成   |  punycode  |
 |  已完成   |  query-strings  |
 |  未开始   |  readline  |
 |  未开始   |  repl  |

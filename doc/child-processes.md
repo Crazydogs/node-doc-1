@@ -466,7 +466,7 @@ spawn('prg', [], { stdio: ['pipe', null, null, null, 'pipe'] });
 
 `child.connected` 属性用于声明是否继续与子进程接发消息，如果值为 `false`，则停止接发消息。
 
-#### child.diconnect()
+#### child.disconnect()
 
 该方法用于关闭父子进程之间的 IPC 信道，如果父子进程之间不再通信了，就可以优雅的结束子进程。调用该方法后，父子进程中的 `child.connected` 和 `process.connected` 属性会被设为 false，并且不再进行通信。
 
