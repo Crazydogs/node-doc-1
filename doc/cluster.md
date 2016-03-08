@@ -557,7 +557,7 @@ eachWorker((worker) => {
 socket.on('data', (id) => {
   var worker = cluster.workers[id];
 });
-```
+```  
 
 <style>
 .s {

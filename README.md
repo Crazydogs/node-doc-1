@@ -24,9 +24,9 @@ Nodejs 简体中文版文档，翻译自 Nodejs 官方文档。
 |  已完成   |  child-processes  |
 |  已完成   |  cluster  |
 |  已完成   |  console  |
-|  未开始   |  crypto  |
+|  已完成   |  crypto  |
 |  已完成   |  debugger  |
-|  未开始   |  dns  |
+|  已完成   |  dns  |
 |  已完成   |  domain  |
 |  未开始   |  errors  |
 |  未开始   |  events  |
