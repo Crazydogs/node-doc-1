@@ -30,7 +30,7 @@ Nodejs 简体中文版文档，翻译自 Nodejs 官方文档。
 |  已完成   |  domain  |
 |  已完成   |  errors  |
 |  已完成   |  events  |
-|  未开始   |  file-system  |
+|  已完成   |  file-system  |
 |  已完成   |  globals  |
 |  未开始   |  http  |
 |  未开始   |  https  |
