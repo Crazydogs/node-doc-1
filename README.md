@@ -33,7 +33,7 @@ Nodejs 简体中文版文档，翻译自 Nodejs 官方文档。
 |  已完成   |  file-system  |
 |  已完成   |  globals  |
 |  已完成   |  http  |
-|  未开始   |  https  |
+|  已完成   |  https  |
 |  未开始   |  modules  |
 |  未开始   |  net  |
 |  已完成   |  os  |
