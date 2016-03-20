@@ -37,7 +37,7 @@ Nodejs 简体中文版文档，翻译自 Nodejs 官方文档。
 |  未开始   |  modules  |
 |  未开始   |  net  |
 |  已完成   |  os  |
-|  未开始   |  path  |
+|  已完成   |  path  |
 |  未开始   |  process  |
 |  已完成   |  punycode  |
 |  已完成   |  query-strings  |
