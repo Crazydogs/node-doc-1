@@ -52,8 +52,8 @@ Nodejs 简体中文版文档，翻译自 Nodejs 官方文档。
 |  已完成   |  url  |
 |  已完成   |  utilities  |
 |  已完成   |  v8  |
-|  未开始   |  vm  |
-|  未开始   |  zlib  |
+|  已完成   |  vm  |
+|  已完成   |  zlib  |
 
 #### LICENSE
 
