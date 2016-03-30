@@ -269,7 +269,7 @@ server.on('error', (e) => {
 对于 TCP socket，`options` 参数是一个对象，包含以下参数：
 
 - `port`，客户端需要连接的端口
-- `hsot`，客户端需要连接的主机，默认值为 `localhost`
+- `host`，客户端需要连接的主机，默认值为 `localhost`
 - `localAddress`，为网络连接绑定的本地接口
 - `localPort`，为网络连接绑定的本地端口
 - `family`，IP 协议栈的版本，默认值为 `4`
