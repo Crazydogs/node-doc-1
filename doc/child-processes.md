@@ -45,7 +45,7 @@ ls.on('close', (code) => {
 
 #### 在 Windows 平台执行 `.bat` 和 `.cmd` 文件
 
-`child_process.exec()` 和 `child_process.execFile()` 两个方法之间的差异取决于当前 Node.js 的运行平台。在 *nix （Unix，Linux，OSX）系统上，`child_process.execFile()` 方法更加高效，这是因为它在执行时无需生成一个 shell。但是在 Windows 平台上，如果脱离了终端，`.bat` 和 `.cmd` 文件是无法执行的，因此也无法使用 `child_process.execFile()` 方法。要想在 Windows 环境下调用 `.bat` 和 `.cmd` 文件，有两种方式，一种是使用 `child_process.exec()`，另一种是使用 `child_process.spawn()` 生成一个 `cmd.exe`，然后出入 `.bat` 或者 `.cmd` 文件：
+`child_process.exec()` 和 `child_process.execFile()` 两个方法之间的差异取决于当前 Node.js 的运行平台。在 *nix （Unix，Linux，OSX）系统上，`child_process.execFile()` 方法更加高效，这是因为它在执行时无需生成一个 shell。但是在 Windows 平台上，如果脱离了终端，`.bat` 和 `.cmd` 文件是无法执行的，因此也无法使用 `child_process.execFile()` 方法。要想在 Windows 环境下调用 `.bat` 和 `.cmd` 文件，有两种方式，一种是使用 `child_process.exec()`，另一种是使用 `child_process.spawn()` 生成一个 `cmd.exe`，然后输入 `.bat` 或者 `.cmd` 文件：
 
 ```js
 // On Windows Only ...

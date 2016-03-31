@@ -1,23 +1,7 @@
-> 该文档尚在翻译当中，翻译完成后会托管在 Gitbook。
+本文档翻译自 Node.js 5.x 官方文档，目前 Node.js 5.x 版本更新迅速，本文档将会追踪最新的大版本号文档，保证内容的可信度。
 
-Nodejs 简体中文版文档，翻译自 Nodejs 官方文档。
+如果想参与到本文档的翻译和后期维护中，请发一封 Email: pinggodstudio[at]gmail。
 
-#### 版本
+欢迎在各类社交网络和个人博客分享本文档，如果可以附加上本文档的 GitHub 地址，方便更多的人检查和重修该文档，是再好不过的事情了。
 
-当前版本翻译自 Nodejs v5.x 官方文档。
-
-#### 贡献者
-
-- [Sean Sun](http://pinggod.com)
-
-#### 参与
-
-- [Github repo](https://github.com/pinggod/node-doc)
-
-#### 尚未完成章节
-
-- stream
-
-#### LICENSE
-
-MIT
+Have Fun :)
