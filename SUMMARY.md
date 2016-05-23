@@ -1,13 +1,14 @@
 # Summary
 
 - [About](doc/about.md)
-- [Synopsis](doc/synopsis.md)
+- [Usage & Example](doc/usage-and-example.md)
+
 - [Assertion Testing](doc/assertion-testing.md)
 - [Buffer](doc/buffer.md)
 - [C/C++ Addons](doc/c-and-c-plus-plus-addons.md)
 - [Child Processes](doc/child-processes.md)
 - [Cluster](doc/cluster.md)
-- [Console](doc/console.md)
+- [Command Line Options](doc/command-line-options.md)
 - [Crypto](doc/crypto.md)
 - [Debugger](doc/debugger.md)
 - [DNS](doc/dns.md)

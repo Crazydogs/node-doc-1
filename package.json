@@ -1,0 +1,29 @@
+{
+  "name": "node-doc",
+  "version": "6.2.0",
+  "description": "node document in chinese",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc"
+  },
+  "scripts": {
+    "start": "gitbook serve"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pinggod/node-doc.git"
+  },
+  "keywords": [
+    "node",
+    "doc"
+  ],
+  "author": "Sean Sun (@pinggod)",
+  "license": "CC0-1.0",
+  "bugs": {
+    "url": "https://github.com/pinggod/node-doc/issues"
+  },
+  "homepage": "https://github.com/pinggod/node-doc#readme",
+  "devDependencies": {
+    "gitbook-cli": "^2.1.3"
+  }
+}
