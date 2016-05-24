@@ -2,33 +2,32 @@
 
 <div class="s s3"></div>
 
-`assert` 模块提供了一系列的测试接口。这些接口的设计初衷是服务于 Node.js 的开发和测试，现在也可以通过 `require('assert')` 在 Node.js 开发的应用中使用。不过有一点要记住，`assert` 模块不是一个测试框架，不建议用作通用的断言调试库。
+`assert` 模块提供了一系列的断言测试函数，设计这些辅助函数的初衷是服务于 Node.js 内建模块的开发和测试，现在也可以通过 `require('assert')` 将其应用到第三方模块的开发中。不过有一点要记住，`assert` 模块不是一个测试框架，不建议用作通用的断言调试库。
 
-当前 `assert` 模块的 API 处于锁定状态，这意味着该模块将不再添加新接口，也不会再修改既有的接口规范。
+当前 `assert` 模块的 API 处于锁定状态，这意味着该模块将不会增加新接口和修改现有接口。
 
 ## assert(value[, message])
 
 等同于 `assert.ok()`:
 
 ```js
-const assert = require('assert')
+const assert = require('assert');
 
-// 参数值 == true，无输出
-assert(true)
-assert(1)
-
-// 参数值 != false，抛出错误
-assert(0)
-// => AssertionError: 0 == true
-assert(false, "it's false")
-// => AssertionError: it's false
+assert(true);  // OK
+assert(1);     // OK
+assert(false);
+// throws "AssertionError: false == true"
+assert(0);
+// throws "AssertionError: 0 == true"
+assert(false, 'it\'s false');
+// throws "AssertionError: it's false"
 ```
 
 ## assert.deepEqual(actual, expected[, message])
 
-判断参数 `actual` 和 `expected` 是否相等，使用 `==` 比较原始值（primitive value)。
+判断参数 `actual` 和 `expected` 是否深度相等，对参数中的原始值（primitive value）使用 `==` 进行比较。
 
-`deepEqual()` 只会比较对象的自有、可枚举属性，不会对其他属性进行比较，所以在某些情况下结果会出人意料，比如在下面的示例中就不会抛出 `AssertionError`，这是因为 Error 对象的属性不是可枚举属性：
+`deepEqual()` 只会遍历比较对象的自有属性，不会比较对象的原型、symbol 和不可遍历的属性，所以在某些情况下结果可能会出人意料。比如在下面的示例中就不会抛出 `AssertionError`，这是因为 Error 对象的属性不是可枚举属性：
 
 ```js
 // WARNING: This does not throw an AssertionError!
@@ -76,13 +75,13 @@ assert.deepEqual(obj1, obj4);
 
 ## assert.deepStrictEqual(actual, expected[, message])
 
-与 `assert.deepEqual()` 的作用基本相同，两者的区别在于，`assert.deepStrictEqual()` 使用 `===` 判断原始值是否相等：
+与 `assert.deepEqual()` 的功能基本相同，区别在于，`assert.deepStrictEqual()` 使用 `===` 判断原始值是否相等，这里的原始值既包括对象自身的属性，也包括引用的子对象的属性：
 
 ```js
 const assert = require('assert');
 
 assert.deepEqual({a:1}, {a:'1'});
-// OK, because 1 == '1'
+// OK, because 1 =a= '1'
 
 assert.deepStrictEqual({a:1}, {a:'1'});
 // AssertionError: { a: 1 } deepStrictEqual { a: '1' }
@@ -170,7 +169,7 @@ assert.fail(1, 2, 'whoops', '>');
 
 ## assert.ifError(value)
 
-如果 `value` 为真值（译者注：真值意指 `!!value === true`)，则抛出 `value`，这对于测试回调函数中的 `error` 参数很有用：
+如果 `value` 为真值，则抛出 `value`，这对于测试回调函数中的 `error` 参数很有用：
 
 ```js
 const assert = require('assert');
@@ -183,7 +182,7 @@ assert.ifError(new Error()); // Throws Error
 
 ## assert.notDeepEqual(actual, expected[, message])
 
-与 [assert.deepEqual()](#assertdeepequalactual-expected-message) 的功能相反，测试 `actual` 参数和 `expected` 参数是否不相等：
+与 assert.deepEqual() 的功能相反，该函数用于测试 `actual` 参数和 `expected` 参数是否不深度相等：
 
 ```js
 const assert = require('assert');
@@ -218,11 +217,11 @@ assert.notDeepEqual(obj1, obj4);
 // OK, obj1 and obj2 are not deeply equal
 ```
 
-如果 actual 和 expected 相等，则抛出 `AssertionError` 错误和 `message` 错误信息。这里的 `message` 参数为可选字符串参数，如果未传入该参数，系统自动分配默认的错误信息。
+如果 actual 和 expected 深度相等，则抛出 `AssertionError` 错误和 `message` 错误信息。这里的 `message` 参数为可选字符串参数，如果未传入该参数，系统自动分配默认的错误信息。
 
 ## assert.notDeepStrictEqual(actual, expected[, message])
 
-与 [assert.notDeepStrictEqual()](#assertdeepstrictequalactual-expected-message) 的功能相反，测试 `actual` 参数和 `expected` 参数是否不相等：
+与 assert.notDeepStrictEqual() 的功能相反，该函数用于测试 `actual` 参数和 `expected` 参数是否不严格深度相等：
 
 ```js
 const assert = require('assert');
@@ -360,51 +359,15 @@ assert.throws(
 );
 ```
 
+注意，这里的 `error` 参数不能是字符串，如果该参数是字符串，则会触发错误并被识别为 `message` 信息，这是非常容易被忽略的错误用法：
 
+```js
+// THIS IS A MISTAKE! DO NOT DO THIS!
+assert.throws(myFunction, 'missing foo', 'did not throw with expected message');
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+// Do this instead.
+assert.throws(myFunction, /missing foo/, 'did not throw with expected message');
+```
 
 <style>
 .s {
