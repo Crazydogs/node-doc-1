@@ -8,35 +8,83 @@
 
 `Buffer` 类的实例非常类似整数数组，但其大小是固定不变的，由 V8 分配原始内存空间。`Buffer` 类的实例一旦生成，所占有的内存大小就不能再进行调整。
 
-`Buffer` 类是 Node.js 的全局对象，无需像其他模块一样使用 `require('buffer')` 模式引入到当前文件：
+`Buffer` 类是 Node.js 的全局对象，无需像其他模块一样使用 `require()` 引入到当前文件：
 
 ```js
-const buf1 = new Buffer(10);
-// 创建一个 Buffer 实例，长度为 10 个字节
+const buf1 = Buffer.alloc(10);
+// Creates a zero-filled Buffer of length 10.
 
-const buf2 = new Buffer([1,2,3]);
-// 创建一个 Buffer 实例，包含数据 [01, 02, 03]
+const buf2 = Buffer.alloc(10, 1);
+// Creates a Buffer of length 10, filled with 0x01.
 
-const buf3 = new Buffer('test');
-// 创建一个 Buffer 实例，包含 ASCII 数据 [74， 65， 73， 74]
+const buf3 = Buffer.allocUnsafe(10);
+// Creates an uninitialized buffer of length 10.
+// This is faster than calling Buffer.alloc() but the returned
+// Buffer instance might contain old data that needs to be
+// overwritten using either fill() or write().
 
-const buf4 = new Buffer('tést', 'utf8');
-// 创建一个 Buffer 实例，包含 UTF8 数据 [74, c3, a9, 73, 74]
+const buf4 = Buffer.from([1,2,3]);
+// Creates a Buffer containing [01, 02, 03].
+
+const buf5 = Buffer.from('test');
+// Creates a Buffer containing ASCII bytes [74, 65, 73, 74].
+
+const buf6 = Buffer.from('tést', 'utf8');
+// Creates a Buffer containing UTF8 bytes [74, c3, a9, 73, 74].
 ```
+
+## Buffer.from() / Buffer.alloc() / Buffer.allocUnsafe()
+
+在 Node.js v6 之前，我们使用 `new Buffer()` 的方式创建 Buffer 实例，但这种方式会由于传入的参数类型不同具有不同的返回结果：
+
+- 如果传入的第一个参数是数值（比如 `new Buffer(10)`），则生成一个特定长度的 Buffer 对象，但是此类 Buffer 实例分配到的内存是未经初始化和包含敏感数据的内存。此类 Buffer 实例必须通过 `buf.fill(0)` 或一次完整的数据重写手动完成内存的初始化操作。虽然这种方式有助于改善性能，但是过往的开发经验表明，我们需要特定的函数分别用作创建未初始化和已初始化的 Buffer 实例，使其职责清晰
+- 如果传入的第一个参数是字符串、数组或 Buffer 实例，则系统会将它们的数据拷贝到新的 Buffer 实例中
+- 如果传入的参数是 ArrayBuffer 实例，则生成的 Buffer 实例与该 ArrayBuffer 实例共享同一段内存
+
+由于 `new Buffer()` 会根据第一个参数的类型发生不同的行为，所以当应用程序无法合理校验传入 `new Buffer()` 的参数或无法正确初始化 Buffer 实例的内存时，就有可能会在代码中引入安全性和可靠性问题。
+
+为了避免创建 Buffer 实例时产生的安全性和可靠性问题，所以在新版本中建议放弃使用 `new Buffer()` 并使用 `Buffer.from()`、`Buffer.alloc()` 和 `Buffer.allocUnsafe()` 方法。
+
+开发者应该使用以下函数替换过去使用 `new Buffer()` 创建的 Buffer 实例：
+
+- `Buffer.from(array)`，创建并返回一个包含 `array` 数据的 Buffer 实例
+- `Buffer.from(arrayBuffer[, byteOffset [, length]])`，创建并返回一个与 `ArrayBuffer` 共享内存片段的 Buffer 实例
+- `Buffer.from(buffer)`，创建并返回一个包含 `buffer` 数据的 Buffer 实例
+- `Buffer.from(str[, encoding])`，创建并返回一个包含 `str` 数据的 Buffer 实例
+- `Buffer.alloc(size[, fill[, encoding]])`，创建并返回一个已初始化的 Buffer 实例，长度为 `size`，该方法在性能上虽然明显比 `Buffer.allocUnsafe(size)` 慢很多，但可以保证新建的 Buffer 实例绝对不会包含敏感或遗留数据
+- `Buffer.allocUnsafe(size)` 和 `Buffer.allocUnsafeSlow(size)` 都可以新建 Buffer 实例，但不会自动初始化内存片段，必须使用 `buf.fill(0)` 或重写内存片段的方式对内存片段进行初始化。
+
+如果 `Buffer.allocUnsafe(size)` 的 `size` 小于或等于 `Buffer.poolSize` 的一半，那么 Buffer 实例就有可能由内部共享内存池分配内存片段，而使用 `Buffer.allocUnsafeSlow(size)` 生成的 Buffer 实例则不会使用内部的共享内存池。
+
+#### `--zero-fill-buffers`
+
+如果在命令行中以 `--zero-fill-buffers` 命令启动 Node.js，将会强制为 Buffer 实例分配新内存并自动初始化为 0。使用该命令会改变一些默认行为，并对系统性能造成一些影响。建议只在处理敏感数据时使用该数据：
+
+```bash
+$ node --zero-fill-buffers
+> Buffer.allocUnsafe(5);
+<Buffer 00 00 00 00 00>
+```
+
+#### 为什么 `Buffer.allocUnsafe(size)` 和 `Buffer.allocUnsafeSlow(size)` unsafe?
+
+当使用 `Buffer.allocUnsafe(size)` 和 `Buffer.allocUnsafeSlow(size)` 生成 Buffer 实例时，其分配到的内存片段都是未经初始化的。虽然这种操作执行速度快，但这些内存片段可能包含遗漏数据和敏感信息，那么当系统读取 Buffer 实例内存内容时，就有可能发生内存泄露。
+
+虽然 `Buffer.allocUnsafe()` 的执行性能很好，但必须十分小心由此造成的安全性问题。
 
 ## Buffer 和字符编码
 
 Buffer 实例常用于处理编码后的字符序列，比如 UTF8 / UCS2 / Base64 甚至是十六进制编码后的数据。通过指定字符编码，数据可以在 Buffer 实例和原始的 JavaScript 字符串之间来回转换：
 
 ```js
-const buf = new Buffer('hello world', 'ascii');
+const buf = Buffer.from('hello world', 'ascii');
 console.log(buf.toString('hex'));
-// 输出结果: 68656c6c6f20776f726c64
+// prints: 68656c6c6f20776f726c64
 console.log(buf.toString('base64'));
-// 输出结果: aGVsbG8gd29ybGQ=
+// prints: aGVsbG8gd29ybGQ=
 ```                      
 
-当前 Node.js 支持以下字符编码规范：
+当前 Node.js 支持以下字符编码格式：
 
 - `ascii`，仅支持大小为 7 位的 ASCII 字符，该方法解析速度快。如果字符编码超过 127，则自动去除高位。
 - `utf8`，使用多个字节对 unicode 字符进行编码。诸多 web 页面和文档都在采用 UTF-8 编码规范。
@@ -48,12 +96,12 @@ console.log(buf.toString('base64'));
 
 ## Buffer 和 TypedArray
 
-Buffer 实例实际上也是 `TypedArray` 中 `Uint8Array` 的实例，不过，这里的 `TypedArray` 与 ECMAScript 2015 规范所规定的 `TypedArray` 稍有不同。举例来说，规范规定 `ArrayBuffer#slice()` 方法从切换创建一个内存拷贝，而 Node.js 中 `Buffer#slice()` 则会根据既有的 Buffer 实例创建一个视图（View，译者注：ES2015 中有两种视图，分别是 TypedArray 和 DataView），提供执行效率。
+Buffer 实例实际上也是 `TypedArray` 中 `Uint8Array` 的实例，不过，这里的 `TypedArray` 与 ECMAScript 2015 规范所规定的 `TypedArray` 稍有不同。举例来说，规范规定 `ArrayBuffer#slice()` 方法创建一个内存拷贝，而 Node.js 中 `Buffer#slice()` 则会根据既有的 Buffer 实例新建一个视图（View，译者注：ES2015 中有两种视图，分别是 TypedArray 和 DataView），而不是拷贝数据，提高执行效率。
 
 使用 `Buffer` 类创建 `TypedArray` 实例还需留意以下几点特征：
 
 1. `Buffer` 实例的内存数据会被拷贝到 `TypedArray` 实例中，它们之间不是内存共享的关系。
-1. `BUffer` 实例的内存数据会被解释为一个直观的整数数组，而不是一个特定类型的单元素数组。举例来说，`new Uint32Array(new Buffer([1,2,3,4]))` 会创建一个 `Uint32Array` 视图，它包含 `[1,2,3,4]` 四个元素，而不是创建一个 `Uint32Array` 类型的单元素数组 `[0x1020304]` 或 `[0x4030201]`。
+1. `Buffer` 实例的内存数据会被解释为一个直观的整数数组，而不是一个特定类型的单元素数组。举例来说，`new Uint32Array(new Buffer([1,2,3,4]))` 会创建一个 `Uint32Array` 视图，它包含 `[1,2,3,4]` 四个元素，而不是创建一个 `Uint32Array` 类型的单元素数组 `[0x1020304]` 或 `[0x4030201]`。
 
 如果你想创建一个和 `TypedArray` 实例共享内存的 `Buffer` 实例，可以使用 TypedArray 对象的 `.buffer` 属性：
 
@@ -62,46 +110,55 @@ const arr = new Uint16Array(2);
 arr[0] = 5000;
 arr[1] = 4000;
 
-const buf1 = new Buffer(arr); 
-// 复制 Buffer 实例
-const buf2 = new Buffer(arr.buffer); 
-// 共享 Buffer 实例
+const buf1 = Buffer.from(arr); // copies the buffer
+const buf2 = Buffer.from(arr.buffer); // shares the memory with arr;
 
 console.log(buf1);
-// 输出结果: <Buffer 88 a0>, 由 Buffer 实例通过内存复制生成的实例只有两个元素
+// Prints: <Buffer 88 a0>, copied buffer has only two elements
 console.log(buf2);
-// 输出结果: <Buffer 88 13 a0 0f>
+// Prints: <Buffer 88 13 a0 0f>
 
 arr[1] = 6000;
 console.log(buf1);
-// 输出结果: <Buffer 88 a0>
+// Prints: <Buffer 88 a0>
 console.log(buf2);
-// 输出结果: <Buffer 88 13 70 17>
+// Prints: <Buffer 88 13 70 17>
 ```
 
-在这里有一点值得注意，使用 TypedArray 对象的 `.buffer` 属性还不能直接创建 `ArrayBuffer` 的切片实例，对此解决方式是先创建一个 Buffer 实例，然后对该实例进行切片：
+使用 `TypedArray` 的 `.buffer` 属性创建 Buffer 实例时，可以使用 `byteOffset` 和 `length` 参数截取 `ArrayBuffer` 的内存数据：
 
 ```js
 const arr = new Uint16Array(20);
-const buf = new Buffer(arr.buffer).slice(0, 16);
+const buf = Buffer.from(arr.buffer, 0, 16);
 console.log(buf.length);
-// 输出结果: 16
+// Prints: 16
 ```
+
+`Buffer.from()` 和 `TypedArray.from()`（比如 `Uint8Array.from()`）拥有不同的参数和实现，举例来说，TypedArray 接收一个函数作为第二个参数，该函数可被每个元素调用：
+
+- `TypedArray.from(source[, mapFn[, thisArg]])`
+
+但是 `Buffer.from` 函数不具有这种用法：
+
+- `Buffer.from(array)`
+- `Buffer.from(buffer)`
+- `Buffer.from(arrayBuffer[, byteOffset [, length]])`
+- `Buffer.from(str[, encoding])`
 
 ## Buffers 和 ES6 遍历器
 
 使用 ECMAScript 2015 提供的 `for...of` 语法可以遍历 Buffer 实例：
 
 ```js
-const buf = new Buffer([1, 2, 3]);
+const buf = Buffer.from([1, 2, 3]);
 
-for (var b of buf) {
-    console.log(b)
-}
-// 输出结果:
-// 1
-// 2
-// 3
+for (var b of buf)
+  console.log(b)
+
+// Prints:
+//   1
+//   2
+//   3
 ```
 
 此外，使用 `buf.values()`、`buf.keys()` 和 `buf.entries()` 方法可以创建遍历器实例。
@@ -110,88 +167,11 @@ for (var b of buf) {
 
 Buffer 类是一个用于处理二进制数据的全局对象，Node.js 提供了多种方法来创建 Buffer 实例。
 
-#### new Buffer(array)
+#### new Buffer(...)
 
-这里的 `array` 参数是一个数组。下面代码使用一个八进制数组创建了 Buffer 实例：
+`new Buffer()` 的创建方式已在 Node.js 6+ 中被抛弃，此处不再翻译。
 
-```js
-const buf = new Buffer([0x62,0x75,0x66,0x66,0x65,0x72]);
-// 创建 Buffer 实例，实例中存储 ASCII 数据
-// ['b','u','f','f','e','r']
-```
 
-#### new Buffer(buffer)
-
-这里的 `buffer` 参数是一个 Buffer 实例。下面代码使用一个 Buffer 实例，通过内存拷贝，创建了一个新的 Buffer 实例：
-
-```js
-const buf1 = new Buffer('buffer');
-const buf2 = new Buffer(buf1);
-
-buf1[0] = 0x61;
-console.log(buf1.toString());
-// 'auffer'
-console.log(buf2.toString());
-// 'buffer' (不改变原数据)
-```
-
-#### new Buffer(arrayBuffer)
-
-这里的 `arrayBuffer` 参数可以是 `new ArrayBuffer()`，也可以是 `TypedArray` 实例的 `.buffer` 属性。如果传入的是 `TypedArray` 实例的 `.buffer` 属性，那么新创建的 Buffer 实例和传入的 Buffer 实例共享内存数据：
-
-```js
-const arr = new Uint16Array(2);
-arr[0] = 5000;
-arr[1] = 4000;
-
-const buf = new Buffer(arr.buffer); 
-// buf 和 arr 共享同一段内存数据;
-
-console.log(buf);
-// 输出结果: <Buffer 88 13 a0 0f>
-
-// arr 改变，则 buf 改变
-arr[1] = 6000;
-
-console.log(buf);
-// 输出结果: <Buffer 88 13 70 17>
-```
-
-#### new Buffer(size)
-
-这里的 `size` 参数是一个数值，用于指定新建 Buffer 实例所占内存的大小，该参数必须小于或等于 `require('buffer').kMaxLength`（在 64 位系统上，该值为 `2^31-1`)，否则系统抛出 `RangeError`。如果该参数小于 0，则会被视为 0，创建一个长度为 0 的 Buffer 实例。
-
-与 `ArrayBuffer` 的实例不同的是，使用 `new Buffer(size)` 还不能完整创建一个 Buffer 实例。这是因为新创建的 Buffer 实例的底层内存还没有填充数据，，这样每次调用的时候，其数据内容太都是随机生成的。解决这一问题的方法是填充数据，比如下面使用 `buf.fill(0)` 来初始化 Buffer 实例的每个数据都为 0：
-
-```js
-const buf = new Buffer(5);
-console.log(buf);
-// <Buffer 78 e0 82 02 01>
-// (octets will be different, every time)
-
-buf.fill(0);
-console.log(buf);
-// <Buffer 00 00 00 00 00>
-```
-
-#### new Buffer(str[, encoding])
-
-- `str`，待编码的字符串
-- `encoding`，字符串格式的可选参数，默认值 `utf8`
-
-以 `str` 参数提供的字符串作为底层数据创建和初始化 Buffer 实例。如果传入了 `encoding` 参数，就使用 `encoding` 参数指定的字符编码格式进行编码。
-
-```js
-const buf1 = new Buffer('this is a tést');
-console.log(buf1.toString());
-// 输出结果: this is a tést
-console.log(buf1.toString('ascii'));
-// 输出结果: this is a tC)st
-
-const buf2 = new Buffer('7468697320697320612074c3a97374', 'hex');
-console.log(buf2.toString());
-// 输出结果: this is a tést
-```
 
 #### 成员方法：Buffer.byteLength(string[, encoding])
 
