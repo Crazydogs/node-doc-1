@@ -1,6 +1,6 @@
 {
   "name": "node-doc",
-  "version": "6.2.0",
+  "version": "5.0.0",
   "description": "node document in chinese",
   "main": "index.js",
   "directories": {
