@@ -26,7 +26,7 @@
 | OS                   | 翻译中... |
 | Path                 | 翻译中... |
 | Process              | 翻译中... |
-| Punycode             | 翻译中... |
+| Punycode             | 已完成    |
 | Query Strings        | 翻译中... |
 | Readline             | 翻译中... |
 | REPL                 | 翻译中... |

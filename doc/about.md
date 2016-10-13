@@ -20,6 +20,8 @@
 模块已锁定，不接受新的 API 建议，后续只会进行安全、性能或 Bug 方面的优化。
 </div>
 
+> 本文档不会翻译稳定性为 0 的模块，也不建议使用此类模块。
+
 ## 系统调用和 man 页面
 
 类似 [open(2)](http://man7.org/linux/man-pages/man2/open.2.html) 和 [read(2)](http://man7.org/linux/man-pages/man2/read.2.html) 的系统调用命令定义了用户程序与底层操作系统之间的接口。对于 Node.js 简单封装的系统调用命令都会在文档中显式标注，比如 `fs.open()`。对于系统调用命令，文档会直接链接到相应的 man 页面。
