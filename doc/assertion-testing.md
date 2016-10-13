@@ -2,9 +2,9 @@
 
 <div class="s s3"></div>
 
-`assert` 模块提供了一系列的断言测试函数，设计这些辅助函数的初衷是服务于 Node.js 内建模块的开发和测试，现在也可以通过 `require('assert')` 将其应用到第三方模块的开发中。不过有一点要记住，`assert` 模块不是一个测试框架，不建议用作通用的断言调试库。
+`assert` 模块提供了一系列的断言测试函数，设计这些辅助函数的初衷是服务于 Node.js 内建模块的开发和测试，当然开发者也可以通过 `require('assert')` 将其应用到第三方模块的开发中。不过，`assert` 模块不是一个测试框架，不建议用作通用的断言库。
 
-当前 `assert` 模块的 API 处于锁定状态，这意味着该模块将不会增加新接口和修改现有接口。
+当前 `assert` 模块的 API 处于锁定状态，这意味着该模块将不会轻易新增或修改现有接口。
 
 ## assert(value[, message])
 
@@ -13,8 +13,10 @@
 ```js
 const assert = require('assert');
 
-assert(true);  // OK
-assert(1);     // OK
+assert(true);  
+// OK
+assert(1);     
+// OK
 assert(false);
 // throws "AssertionError: false == true"
 assert(0);
@@ -98,13 +100,13 @@ assert.deepStrictEqual({a:1}, {a:'1'});
 
 如果 `block` 函数抛出了错误，且错误类型与 `error` 参数指定的类型相符，就会抛出 `AssertionError` 错误；如果 `block` 函数抛出的错误类型与 `error` 参数指定的类型不符，或者未传入可选参数 `error`，则错误会被传递给函数的调用者。
 
-由于传入的 `error` 参数为 `SyntaxError` 与 `block` 函数的错误不匹配，所以下面的示例代码将会抛出 `block` 函数产生的 `TypeError`： 
+由于传入的 `error` 参数为 `SyntaxError` 与 `block` 函数的错误不匹配，所以下面的示例代码将会抛出 `block` 函数产生的 `TypeError`：
 
 ```js
 assert.doesNotThrow(
     () => {
         throw new TypeError("Wrong Type");
-    }, 
+    },
     SyntaxError
 );
 ```
@@ -115,7 +117,7 @@ assert.doesNotThrow(
 assert.doesNotThrow(
     () => {
         throw new TypeError("Wrong Type");
-    }, 
+    },
     TypeError
 );
 ```
@@ -153,7 +155,7 @@ assert.equal({a: {b: 1}}, {a: {b: 1}});
 
 如果 actual 和 expected 不相等，则抛出 `AssertionError` 错误和 `message` 错误信息。这里的 `message` 参数为可选字符串参数，如果未传入该参数，系统自动分配默认的错误信息。
 
-## assert.fail(actual, expected, message, operator) 
+## assert.fail(actual, expected, message, operator)
 
 抛出 `AssertionError`。如果参数 `message == undefined`，则错误信息为 `actual #{operator} expected`；如果参数 `message != undefined`，则错误信息为参数 `message`：
 
