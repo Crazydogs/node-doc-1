@@ -1,51 +1,32 @@
-本文档致力于全面细致地从概念和实践两方面介绍 Node.js 的 API 用法，文档整体分为多个章节，每一章节针对一个模块或一个高阶概念。
+当前文档翻译自 [Node.js 6.x 官方文档](https://nodejs.org/dist/latest-v6.x/docs/api/documentation.html)，致力于从概念和实践两方面介绍 Node.js API 的使用方式。文档整体分为多个章节，每一章节针对一个模块或一个高阶概念展开。
 
 ## 稳定性
 
-在阅读文档的过程中，你会经常看到如下四种稳定性标识，用于说明当前模块的稳定程度。目前，Node.js 的 API 尚在完善之中，所以有的模块成熟稳定，有的模块尚处于实验阶段，有的模块正在重构。
+在阅读文档的过程中，你会经常看到如下四种稳定性标识，用于说明当前模块的稳定程度：
 
 <div class="s s0">
-接口存在问题，不建议使用，无法有效保障向后兼容性。
+模块存在已知问题，不建议过度依赖该模块，使用时 Node.js 会抛出警告信息，无法有效保障向后兼容性。
 </div>
+
 <div class="s s1">
-接口尚不稳定，未来可能会被修改或移除。
+模块正在开发中，需要使用命令行参数启用，未来可能会被修改或移除。
 </div>
+
 <div class="s s2">
-接口表现成熟，除非绝对需要，否则不会修改，以 npm 开发环境的向后兼容性为优先原则。
+模块整体表现稳定，除非绝对需要，否则不会修改，以 npm 开发环境的向后兼容性为优先开发原则。
 </div>
+
 <div class="s s3">
-接口已锁定，不接受新的 API 建议，后续只会进行安全、性能或 Bug 方面的修改和完善。
+模块已锁定，不接受新的 API 建议，后续只会进行安全、性能或 Bug 方面的优化。
 </div>
 
-## 系统命令和 man 页面
+## 系统调用和 man 页面
 
-类似 [open(2)](http://man7.org/linux/man-pages/man2/open.2.html) 和 [read(2)](http://man7.org/linux/man-pages/man2/read.2.html) 这样的标识，都指的是系统命令，Node.js 只对此类命令提供了简单封装后的函数，比如 `fs.open()`。对于此类命令，本文档会为其附加相应的 man 页面链接，便于开发者查看如何使用这些命令。
+类似 [open(2)](http://man7.org/linux/man-pages/man2/open.2.html) 和 [read(2)](http://man7.org/linux/man-pages/man2/read.2.html) 的系统调用命令定义了用户程序与底层操作系统之间的接口。对于 Node.js 简单封装的系统调用命令都会在文档中显式标注，比如 `fs.open()`。对于系统调用命令，文档会直接链接到相应的 man 页面。
 
+**警告：** 部分系统调用命令是某些系统特有的，比如 [lchown(2)](http://man7.org/linux/man-pages/man2/lchown.2.html) 就是 BSD Unix 特有的。也就是说，`fs.lchown()` 只能用于 Mac OS X 和其他 BSD 衍生操作系统，不能用于 Linux 和 Windows 系统。
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+大多数的 Unix 系统调用命令在 Windows 上都有类似的系统调用命令，但两者的行为可能不同，在某些时候两者微妙的差异导致了绝对的不可替代性，详细信息请参考 [Node issue 4760](https://github.com/nodejs/node/issues/4760)。
 
 <style>
 .s {
