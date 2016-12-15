@@ -981,7 +981,7 @@ SimpleProtocol.prototype._transform = function(chunk, encoding, done) {
 
 - `options`，对象
     - `highwatermark`，数值，当 `stream.write()` 开始返回 `false` 时的缓存级别，默认值是 16384（16kb），对于 `objectMode` stream，默认值是 16
-    - `decodeString`，布尔值，该参数决定是否在讲字符串传递给 `stream._write()` 之前将其转换为 Buffer，默认值为 true
+    - `decodeStrings`，布尔值，该参数决定是否在讲字符串传递给 `stream._write()` 之前将其转换为 Buffer，默认值为 true
     - `objectmode`，布尔值，决定 `stream.write(anyObj)` 是否是一个有效操作。如果值为 true，则可以写入任意类型的数据，而不只是 Buffer 和字符串数据，默认值为 `false`
     - `write`，函数，`stream._write()` 的实现
     - `writev`，函数，`stream._writev()` 的实现
