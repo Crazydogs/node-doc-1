@@ -992,7 +992,7 @@ SimpleProtocol.prototype._transform = function(chunk, encoding, done) {
 
 - `chunk`，Buffer 实例或字符串，写入的数据块。除非 `decodeStrings === false`，否则该参数只能是 Buffer 实例
 - `encoding`，字符串，如果 `chunk` 是一个字符串，则该参数指定字符串的编码格式。如果 chunk 是一个 Buffer 实例，则该参数是一个特殊值 "buffer"，在这种情况下请忽略该值。
-- `callback`，函数，当处理完输入的数据块之后将会执行该回调函数
+- `callback`，函数，当处理完输入的数据块之后须执行该回调函数（可以带一个 error 参数）
 
 **注意，一定不能直接调用该方法**。可以在子类中实现该方法，且只允许 Writable class 的内部方法调用它。
 
@@ -1008,6 +1008,8 @@ SimpleProtocol.prototype._transform = function(chunk, encoding, done) {
 - `callback`，函数，当处理完数据块之后将会执行该回调函数
 
 **注意，一定不能直接调用该方法**。可以在子类中实现该方法，且只允许 Writable class 的内部方法调用它
+
+该方法是 \_write 方法的补充。当流中须要一次性处理多个数据块的能力时，可以实现它。如果提供了 \_writev 方法，会使用内部缓存中的所有数据块作为参数来调用它。
 
 该方法名使用了下划线的前缀，表示它是类的内部方法，不应该被开发者的程序直接调用，而是希望开发者在自定义的扩展类中重写该方法。
 
