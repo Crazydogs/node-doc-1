@@ -33,7 +33,7 @@ Node.js 提供了很多原生的流对象，如 HTTP 服务的 request，process
 - Duplex 同时可读又可写的流(如 net.Socket())
 - Transform 在写入和读取过程中对数据进行修改变换的 Duplex 流(如 zlib.createDeflate())
 
-## 对象模式
+### 对象模式
 
 通过 Node API 创建的流，只能够对字符串或者 buffer 对象进行操作。但其实流的实现是可以基于其他的
 Javascript 类型(除了 null, 它在流中有特殊的含义)的。这样的流就处在 "对象模式" 中。
@@ -41,7 +41,7 @@ Javascript 类型(除了 null, 它在流中有特殊的含义)的。这样的流
 在创建流对象的时候，可以通过提供 objectMode 参数来生成对象模式的流。
 试图将现有的流转换为对象模式是不安全的。
 
-## 缓冲区
+### 缓冲区
 
 Readable 和 Writable 流都会将数据储存在内部的缓冲区中。缓冲区可以分别通过
 `writable._writableState.getBuffer()` 和 `readable._readableState.buffer` 来访问。
@@ -56,60 +56,76 @@ Readable 和 Writable 流都会将数据储存在内部的缓冲区中。缓冲�
 可读流就会暂时停止从底层资源汲取数据，直到当前缓冲的数据成功被消耗掉
 (也就是说，流停止调用内部用来填充缓冲区的 readable._read() 方法)。
 
-## stream 常用 API
+在一个在可写实例上调用 writable.write(chunk) 方法的时候，数据会写入可写流的缓冲区。
+如果缓冲区的数据量低于 highWaterMark 设定的值，调用 `writable.write()` 方法会返回 `true`，
+否则 write 方法会返回 `false`。
 
-Stream 可以是可读、可写或双工的(可读写)。
+stream 模块的 API，特别是 `stream.pipe()`，最主要的目的就是将数据的流动缓冲到一个可接受的水平，
+不让不同速度的数据源之间的差异导致内存被占满。
 
-所有的 stream 都是 EventEmitter 的实例，但是它们也有一些独有的方法和属性。
+Duplex 流和 Transform 流都是同时可读写的，所以他们会在内部维持两个缓冲区，分别用于读取和写入，
+这样就可以允许两边同时独立操作，维持高效的数据流。比如说 `net.Socket` 是一个 Duplex 流，
+Readable 端允许从 socket 获取、消耗数据，Writable 端允许向 socket 写入数据。
+数据写入的速度很有可能与消耗的速度有差距，所以两端可以独立操作和缓冲是很重要的。
 
-如果 stream 是可读写的，那么它一定拥有以下所有的方法和事件。所以即使 Duplex 和 Transform stream 间存在差异，这一部分所介绍的 API 也会完整的描述它们的功能。
+## 使用流涉及的 API
 
-不要为了刻意使用 stream 而实现 Stream 接口，如果要实现自定义的 Stream，请参考第二部分的文档。
-
-对于大多数的 Node.js 程序来说，无论多么简单都有可能会用到 Stream。下面是一个使用 stream 的示例：
+几乎所有的 Node.js 应用，无论多简单，多多少少都会以某种方式用到流。下面是一个在
+实现 Http 服务的 Node 应用中对流的使用。
 
 ```js
-const http = require('http');
+    const http = require('http');
 
-var server = http.createServer( (req, res) => {
-  // req is an http.IncomingMessage, which is a Readable Stream
-  // res is an http.ServerResponse, which is a Writable Stream
+    const server = http.createServer( (req, res) => {
+      // req is an http.IncomingMessage, which is a Readable Stream
+      // res is an http.ServerResponse, which is a Writable Stream
 
-  var body = '';
-  // we want to get the data as utf8 strings
-  // If you don't set an encoding, then you'll get Buffer objects
-  req.setEncoding('utf8');
+      let body = '';
+      // Get the data as utf8 strings.
+      // If an encoding is not set, Buffer objects will be received.
+      req.setEncoding('utf8');
 
-  // Readable streams emit 'data' events once a listener is added
-  req.on('data', (chunk) => {
-    body += chunk;
-  });
+      // Readable streams emit 'data' events once a listener is added
+      req.on('data', (chunk) => {
+        body += chunk;
+      });
 
-  // the end event tells you that you have entire body
-  req.on('end', () => {
-    try {
-      var data = JSON.parse(body);
-    } catch (er) {
-      // uh oh!  bad json!
-      res.statusCode = 400;
-      return res.end(`error: ${er.message}`);
-    }
+      // the end event indicates that the entire body has been received
+      req.on('end', () => {
+        try {
+          const data = JSON.parse(body);
+          // write back something interesting to the user:
+          res.write(typeof data);
+          res.end();
+        } catch (er) {
+          // uh oh!  bad json!
+          res.statusCode = 400;
+          return res.end(`error: ${er.message}`);
+        }
+      });
+    });
 
-    // write back something interesting to the user:
-    res.write(typeof data);
-    res.end();
-  });
-});
+    server.listen(1337);
 
-server.listen(1337);
-
-// $ curl localhost:1337 -d '{}'
-// object
-// $ curl localhost:1337 -d '"foo"'
-// string
-// $ curl localhost:1337 -d 'not json'
-// error: Unexpected token o
+    // $ curl localhost:1337 -d '{}'
+    // object
+    // $ curl localhost:1337 -d '"foo"'
+    // string
+    // $ curl localhost:1337 -d 'not json'
+    // error: Unexpected token o
 ```
+
+Writable 流(如上例中的 res)暴露了 `write()` 和 `end()` 这样的接口，用于向流中写入数据。
+
+Readable 流使用 EventEmitter 的 API 来通知应用，流中有可读取的数据了。
+有多种方式可以获取这些数据。
+
+Readable 流和 Writable 流都以各种方法使用 EventEmitter API 来传达流的当前状态。
+
+Duplex 流和 Transform 流都同时是 Readable 流与 Writable 流。
+
+向流中写入数据或者消耗数据的应用并不需要直接实现流的接口，而且通常并不需要调用
+`require(stream)`
 
 ## Class: stream.Duplex
 
@@ -381,7 +397,7 @@ readable.on('data', (chunk) => {
 
 #### readable.unpipe([destination])
 
-- `destination`，stream Writeable 实例，可选参数，解除指定 stream
+- `destination`，stream Writable 实例，可选参数，解除指定 stream
 
 该方法用于移除调用 stream.pipe() 之前的钩子方法。
 
