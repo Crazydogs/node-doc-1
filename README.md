@@ -50,3 +50,4 @@
 ### 贡献者
 
 - [@pinggod](https://github.com/pinggod)
+- [@Crazydogs](https://github.com/Crazydogs)
