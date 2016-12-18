@@ -2,19 +2,63 @@
 
 <div class="s s2"></div>
 
-stream 是一个抽象的接口，而且在 Node.js 中被多种对象进行了继承和扩展，比如 `http.IncomingMessage` 就是一个 stream。stream 是可读、可写或可读写的。所有的 stream 都是 EventEmitter 的实例。
+stream 是一个在 Node.js 上使用流数据的抽象接口，提供了一些基础的 API，
+方便我们基于它实现流式的接口。
 
-通过 `require('stream')` 可以加载 Stream 的基类，提供的基类包括 Readable stream / Writable stream / Duplex stream 和 Transform stream。
+Node.js 提供了很多原生的流对象，如 HTTP 服务的 request，process 模块的 stdout 等。
 
-本节文档主要分为三个部分：
+流可以是可读的，可写的或者是同时可读写的。所有的流都是 EventEmitter 实例。
 
-1. 第一部分介绍了开发者需要在开发中使用 steam 所涉及的 API 
-2. 第二部分介绍了开发者创建自定义 stream 所需要的 API
-3. 第三部分深入解析了 stream 的工作机制，包括一些内部机制
+可以通过下面这种方式加载 `stream` 模块
+
+```js
+    const stream = require('stream');
+```
+
+尽管所有的 Node.js 用户都必须弄明白 stream 是如何工作的，但 stream 模块本身只对正在创建新类型流的开发人员最有用。
+其他开发者很少须要直接使用 stream 模块。
+
+## 本文档的结构
+
+本文档分为两个主要部分，和一个附加注释部分。
+第一部分介绍了开发者需要在开发中使用 steam 所涉及的 API。
+第二部分介绍了开发者创建自定义 stream 所需要的 API。
+
+## Stream 的类型
+
+在 Node.js 中 stream 一共有 4 种基本类型
+
+- Readable 可以读取数据的流(如 fs.createReadStream())
+- Writable 可以写入数据的流(如 fs.createWriteStream())
+- Duplex 同时可读又可写的流(如 net.Socket())
+- Transform 在写入和读取过程中对数据进行修改变换的 Duplex 流(如 zlib.createDeflate())
+
+## 对象模式
+
+通过 Node API 创建的流，只能够对字符串或者 buffer 对象进行操作。但其实流的实现是可以基于其他的
+Javascript 类型(除了 null, 它在流中有特殊的含义)的。这样的流就处在 "对象模式" 中。
+
+在创建流对象的时候，可以通过提供 objectMode 参数来生成对象模式的流。
+试图将现有的流转换为对象模式是不安全的。
+
+## 缓冲区
+
+Readable 和 Writable 流都会将数据储存在内部的缓冲区中。缓冲区可以分别通过
+`writable._writableState.getBuffer()` 和 `readable._readableState.buffer` 来访问。
+
+缓冲区中能容纳的数据数量由 stream 构造函数的 `highWaterMark` 选项决定。对于普通的流来说，
+`highWaterMark` 选项表示总共可容纳的比特数。对于对象模式的流，该参数表示可以容纳的对象个数。
+
+当一个可读实例调用 stream.push() 方法的时候，数据将会被推入缓冲区。如果没有数据的消费者出现，
+调用 stream.read() 方法的话，数据就会一直留在缓冲队列中。
+
+如果可读实例内部的缓冲区大小达到了创建时由 `highWaterMark` 指定的阈值，
+可读流就会暂时停止从底层资源汲取数据，直到当前缓冲的数据成功被消耗掉
+(也就是说，流停止调用内部用来填充缓冲区的 readable._read() 方法)。
 
 ## stream 常用 API
 
-Stream 可以是可读、可写或双工的（可读写）。
+Stream 可以是可读、可写或双工的(可读写)。
 
 所有的 stream 都是 EventEmitter 的实例，但是它们也有一些独有的方法和属性。
 
