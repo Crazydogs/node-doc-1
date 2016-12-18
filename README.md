@@ -30,7 +30,7 @@
 | Query Strings        | 翻译中... |未认领 | 未审校 |
 | Readline             | 翻译中... |未认领 | 未审校 |
 | REPL                 | 翻译中... |未认领 | 未审校 |
-| Stream               | 翻译中... |未认领 | 未审校 |
+| Stream               | 翻译中... |@Crazydogs | 未审校 |
 | String Decoder       | 翻译中... |未认领 | 未审校 |
 | Timers               | 翻译中... |未认领 | 未审校 |
 | TLS/SSL              | 翻译中... |未认领 | 未审校 |
