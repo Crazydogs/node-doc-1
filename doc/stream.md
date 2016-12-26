@@ -127,6 +127,104 @@ Duplex 流和 Transform 流都同时是 Readable 流与 Writable 流。
 向流中写入数据或者消耗数据的应用并不需要直接实现流的接口，而且通常并不需要调用
 `require(stream)`
 
+想要创造新的 stream 类型的开发者请参考本文档第三部分（自定义 stream 所需要的 API）
+
+
+## Writable Streams
+
+Writable Streams，可写流，是对数据写入的目标的一种抽象。
+
+常见的可写流包括：
+
+- 在客户端的 HTTP request
+- 在服务端的 HTTP responses
+- 可写文件流(fs.createWriteStream)
+- zlib 流
+- crypto 流
+- TCP sockets
+- child process stdin
+- process.stdout, process.stderr
+
+注意：上面列举的部分列子实际上是双工 stream，即同时实现了可读流的接口
+
+所有的可写流都实现了 `stream.Writable` 类定义的接口。
+
+虽然各种可写流在不同的方面有所区别，但所有的可写流都遵循下面这样的基本使用方式。
+
+```js
+    const myStream = getWritableStreamSomehow();
+    myStream.write('some data');
+    myStream.write('some more data');
+    myStream.end('done writing data');
+```
+
+### stream.Writable 类
+添加于 v0.9.4
+
+#### close 事件
+添加于 v0.9.4
+
+当流或者流的基础资源(比如文件描述符)被关闭，就会触发 `close` 事件。该事件表示，
+没有其他事件会触发，也不会再进行更多的计算。
+
+并不是所有的可写流都会触发 `close` 事件
+
+#### drain 事件
+添加于 v0.9.4
+
+如果调用 stream.write(chunk) 的时候返回了 `false`，那么当可以重新开始向流中写入数据的时候，
+就会触发 `drain` 事件。
+
+```js
+    // Write the data to the supplied writable stream one million times.
+    // Be attentive to back-pressure.
+    function writeOneMillionTimes(writer, data, encoding, callback) {
+      let i = 1000000;
+      write();
+      function write() {
+        var ok = true;
+        do {
+          i--;
+          if (i === 0) {
+            // last time!
+            writer.write(data, encoding, callback);
+          } else {
+            // see if we should continue, or wait
+            // don't pass the callback, because we're not done yet.
+            ok = writer.write(data, encoding);
+          }
+        } while (i > 0 && ok);
+        if (i > 0) {
+          // had to stop early!
+          // write some more once it drains
+          writer.once('drain', write);
+        }
+      }
+    }
+```
+
+#### error 事件
+添加于 v0.9.4
+
+`error` 事件会在写入/传输数据发生错误的时候触发。事件的回调函数在调用的时候，
+会接受一个 `Error` 参数。
+
+#### finish 事件
+添加于 v0.9.4
+
+在执行 stream.end() 之后，会触发 `finish` 事件，此时所有数据都应该已经写入底层。
+
+```js
+    const writer = getWritableStreamSomehow();
+    for (var i = 0; i < 100; i ++) {
+      writer.write(`hello, #${i}!\n`);
+    }
+    writer.end('This is the end\n');
+    writer.on('finish', () => {
+      console.error('All writes are now complete.');
+    });
+```
+
 ## Class: stream.Duplex
 
 Duplex stream 是同时实现了 Readable 和 Writable 接口的 stream。
