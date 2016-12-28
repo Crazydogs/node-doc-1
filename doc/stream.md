@@ -353,9 +353,43 @@ null 之外的任意 JavaScript 值
 
 ## Readable Streams
 
+可读流是对数据来源的一种抽象。
 
+常见的可读流包括：
 
+- 在客户端的 HTTP 返回
+- 在服务端的 HTTP 请求
+- 可读文件流(fs.createReadStream)
+- zlib 流
+- crypto 流
+- TCP sockets
+- child process stdout 和 stderr
+- process.stdin
 
+所有的可读流都实现了 `stream.Readable` 定义的接口。
+
+### 两种模式
+
+可读流可以工作在两种模式，流模式和暂停模式。
+
+在流模式下，流会从底层系统尽快地读取数据，然后通过 `EventEmitter` 的事件接口提供给应用。
+
+在暂停模式下，必须显示的调用 stream.read() 从流中读取数据。
+
+处在暂停模式的流可以通过下面的方式切换到流模式
+
+- 给流的 `data` 事件添加监听器
+- 调用流的 `stream.resume()` 方法
+- 调用 `stream.pipe()` 方法将数据送入一个可写流
+
+还可以通过下面的方式切回暂停模式
+
+- 流没有 pipe 的目标时调用 `stream.pause()` 方法
+- 流如果有 pipe 的目标，须要移除所有 `data` 事件的监听器，并通过 `stream.unpipe()`
+方法移除所有的 pipe 目标。
+
+一个重要的概念是，如果没有消耗或忽略数据的机制的话，可读流将不会生成数据。
+如果数据的消费者失效了或者被移除，可读流将会尝试停止生成数据。
 
 
 
