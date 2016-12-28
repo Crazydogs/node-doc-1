@@ -206,6 +206,8 @@ Writable Streams，可写流，是对数据写入的目标的一种抽象。
 #### error 事件
 添加于 v0.9.4
 
+- 参数 <Error>
+
 `error` 事件会在写入/传输数据发生错误的时候触发。事件的回调函数在调用的时候，
 会接受一个 `Error` 参数。
 
@@ -224,6 +226,143 @@ Writable Streams，可写流，是对数据写入的目标的一种抽象。
       console.error('All writes are now complete.');
     });
 ```
+
+#### pipe 事件
+添加于 v0.9.4
+
+- 参数 `src` <stream.Readable> 流向此可写流的源
+
+`pipe` 事件会在一个可读流调用 `stream.pipe()`，将一个可写流添加到他的目标集合的时候触发。
+
+```js
+    const writer = getWritableStreamSomehow();
+    const reader = getReadableStreamSomehow();
+    writer.on('pipe', (src) => {
+      console.error('something is piping into the writer');
+      assert.equal(src, reader);
+    });
+    reader.pipe(writer);
+```
+
+#### unpipe 事件
+添加于 v0.9.4
+
+- 参数 `src` <Readable Stream> 停止流向此可写流的源
+
+`pipe` 事件会在一个可读流调用 `stream.unpipe()`，将一个可写流从他的目标集合移除的时候触发。
+
+```js
+const writer = getWritableStreamSomehow();
+const reader = getReadableStreamSomehow();
+writer.on('unpipe', (src) => {
+  console.error('Something has stopped piping into the writer.');
+  assert.equal(src, reader);
+});
+reader.pipe(writer);
+reader.unpipe(writer);
+```
+
+#### writable.cork()
+添加于 v0.11.2
+`writable.cork()` 方法强制让已接受到的数据留在内存中，直到调用 `writable.uncork()`
+或者 `writable.end()` 时才开始将数据写入目标。
+
+`writable.cork()` 的主要功能是避免很多小数据块依次写入流中的情况，就不用在内部缓冲区生成备份，
+以至于影响性能。在这种情况下，实现了 `writable._writev()`
+方法的实例可以用更好的方式执行写入操作。
+
+#### writable.end([chunk][, encoding][, callback])
+添加于 v0.9.4
+
+- 参数 `chunk` <String> | <Buffer> | <any> 可选的将要写入的数据，对于处于正常模式的流来说，
+chunk 必须是字符串或者 Buffer 对象，而对于处于对象模式的流，chunk 可以是除了
+null 之外的任意 JavaScript 值
+- 参数 `encoding` <String> 如果 chunk 是字符串，此参数为其编码
+- 参数 `callback` <Function> 可选的回调函数，当流完成时调用。
+
+调用 writable.end() 方法表示流将不会再有新的数据写入。可选的 chunk 和 encoding
+参数允许在流关闭之前写入最后一块数据。如果提供了可选的 callback 参数，这个函数会成为
+`finish` 事件的一个监听器。
+
+在调用 writable.end() 之后调用 writable.write() 会抛出一个错误。
+
+```js
+    // write 'hello, ' and then end with 'world!'
+    const file = fs.createWriteStream('example.txt');
+    file.write('hello, ');
+    file.end('world!');
+    // writing more now is not allowed!
+```
+
+#### writable.setDefaultEncoding(encoding)
+添加于 v0.11.15
+
+- 参数 `encoding` <String> 新的默认编码
+- 返回值 `this`
+
+`writable.setDefaultEncoding()` 方法用于设置可写流的默认编码
+
+#### writable.uncork()
+添加于 v0.11.2
+
+`writable.uncork()` 方法用于将被 `writable.cork()` 锁定在缓冲区中的数据释放。
+
+当使用 `writable.cork()` 和 `writable.uncork()` 方法来管理可写流的缓冲区时，建议使用
+`process.nextTick()` 方法来调用 `writable.uncork()`。这样做允许在一个 Node.js
+循环批量处理所有 `writable.write()` 调用。
+
+```js
+    stream.cork();
+    stream.write('some ');
+    stream.write('data ');
+    process.nextTick(() => stream.uncork());
+```
+
+如果 `writable.cork()` 方法在同一个流上连续调用了多次，那么必须调用同样次数的
+`writable.uncork()` 方法才能将缓冲区的数据刷新到底层。
+
+```js
+    stream.cork();
+    stream.write('some ');
+    stream.cork();
+    stream.write('data ');
+    process.nextTick(() => {
+      stream.uncork();
+      // The data will not be flushed until uncork() is called a second time.
+      stream.uncork();
+    });
+```
+
+#### writable.write(chunk[, encoding][, callback])
+
+- 参数 chunk <String> | <Buffer> 待写入的数据
+- 参数 encoding <String> 如果 chunk 是字符串，则此参数为其编码
+- 参数 callback <Function> 当数据块被刷新到底层的时候触发
+- 返回值 <Boolean> 如果流想要等 `drain` 事件触发后，再写入新的数据，则返回 `false`，
+否则返回 `true`
+
+`writable.write()` 方法将数据写入流，并在数据完成处理之后调用提供的回调函数。
+如果发生了错误，回调函数可能可以接收到一个 error 作为其第一个参数。如果想要确保监听到错误，
+请为 `error` 事件添加监听器。
+
+返回值表示写入的块是否已经在内部缓冲区，并且缓冲区已经达到了创建流时设置的
+`highWaterMark`。如果返回了 `false`，应该停止继续尝试向流写入数据，直到流发射了
+`drain` 事件。
+
+处于对象模式的可写流会忽略 `encoding` 参数。
+
+## Readable Streams
+
+
+
+
+
+
+
+
+
+
+
 
 ## Class: stream.Duplex
 
