@@ -422,6 +422,127 @@ pipe 的目标的话，调用 `stream.pause()` 方法并不能保证当 pipe 目
 
 当 `readable._readableState.flowing` 为 `false` 时，数据可能会在流的内部缓冲区累积。
 
+### 选择一种方法
+
+可读流API在多个 Node.js 版本中不断改进，并提供了多种消耗流数据的方法。一般来说，
+开发者应该选择使用其中一种，而不应该使用多个方法来从单个流中消耗数据。
+
+建议对大多数用户使用 `readable.pipe()` 方法，它提供了最简单的消耗流数据的方法。 
+需要对数据传输和生成进行更细粒度控制的开发者可以使用 `EventEmitter` 和
+`readable.pause() / readable.resume()` API。
+
+### stream.Readable 类
+添加于 v0.9.4
+
+#### close 事件
+添加于 v0.9.4
+
+当流或者流依赖的底层资源(如文件描述符)关闭时，会发射 `close` 事件。该事件表示，
+不会再有新的事件触发，也不会有进一步的计算。
+
+并不是所有的可读流都会发射 `close` 事件。
+
+#### data 事件
+添加于 v0.9.4
+
+- 参数 chunk <Buffer> | <String> | <any> 数据块。对于处在对象模式的流，chunk
+可以是除了 `null` 之外任意的 JavaScript 值，否则 chunk 只能是字符串或者 `Buffer`
+对象。
+
+`data` 事件会在流放弃对一个数据块的所有权时触发。可读流通过调用 `readable.pipe()`
+或 `readable.resume()` 或添加 `data` 监听器切换到流模式来放弃数据的所有权。调用
+`readable.read()`，释放出一个数据块的时候，也会触发 `data` 事件。
+
+给一个没有显式暂停的流添加 `data` 事件监听将会把流切换到流模式。
+一旦数据可用了就会开始传递。
+
+如果使用 `readable.setEncoding()` 方法为流指定了默认编码，回调函数会被传入字符串作为参数，
+否则就会传入 `Buffer` 对象。
+
+```js
+    const readable = getReadableStreamSomehow();
+    readable.on('data', (chunk) => {
+      console.log(`Received ${chunk.length} bytes of data.`);
+    });
+```
+
+#### end 事件
+添加于 v0.9.4
+
+`end` 事件会在可读流已经没有更多数据提供的时候触发。
+
+注意：除非数据被完全消耗，否则 `end` 事件是不会触发的。可以通过切换到流模式，
+或者不停调用 `stream.read()` 方法耗尽数据使其触发。
+
+```js
+    const readable = getReadableStreamSomehow();
+    readable.on('data', (chunk) => {
+      console.log(`Received ${chunk.length} bytes of data.`);
+    });
+    readable.on('end', () => {
+      console.log('There will be no more data.');
+    });
+```
+
+#### error 事件
+添加于 v0.9.4
+
+- 参数 <Error>
+
+`error` 事件可以在任意时间触发。通常是由于底层内部错误或者流尝试推送无效数据块导致的。
+
+监听器回调函数将会传入一个 `Error` 对象作为参数。
+
+#### readable 事件
+添加于 v0.9.4
+
+当流有可用的数据可以被获取时，会触发 `readable` 事件。某些情况下，给 `readable`
+事件添加监听器会导致一些数据被读入内部的缓冲区。
+
+```js
+    const readable = getReadableStreamSomehow();
+    readable.on('readable', () => {
+      // there is some data to read now
+    });
+```
+
+在到达流数据结尾但还没发出 `end` 事件之前，会先触发 `readable` 事件。
+
+`readable` 事件表示了流有新的信息，可能是新的数据可用，或者到达流数据的末尾。
+如果是前者，调用 `stream.read()` 将会返回可用的数据，如果是后者，`stream.read()`
+会返回 `null`。在下面的示例中， `foo.txt` 是一个空文件：
+
+```js
+    const fs = require('fs');
+    const rr = fs.createReadStream('foo.txt');
+    rr.on('readable', () => {
+      console.log('readable:', rr.read());
+    });
+    rr.on('end', () => {
+      console.log('end');
+    });
+```
+
+运行代码会输出：
+
+```
+    $ node test.js
+    readable: null
+    end
+```
+
+通常来说，使用 `readable.pipe()` 或者 `data` 事件优于使用 `readable` 事件。
+
+#### readable.isPaused()
+
+- 返回值 <Boolean>
+
+
+
+
+
+
+
 
 
 
