@@ -391,7 +391,36 @@ null 之外的任意 JavaScript 值
 一个重要的概念是，如果没有消耗或忽略数据的机制的话，可读流将不会生成数据。
 如果数据的消费者失效了或者被移除，可读流将会尝试停止生成数据。
 
+注意：由于向后兼容的原因，移除 `data` 事件监听器并不会将流暂停。另外，如果还有
+pipe 的目标的话，调用 `stream.pause()` 方法并不能保证当 pipe 目标索取数据时，
+流还能保持在暂停状态。
 
+注意：如果可读流切换到流模式，但却没有数据的消费者接收数据，则数据会流失。
+如在没有监听 `data` 事件就调用 `readable.resume()` 方法，或者从一个可读流移除
+`data` 事件监听器，就会发生这种情况。
+
+### 三种状态
+
+可读流的两种操作模式，是对其内部更复杂的状态管理的简化抽象。
+
+具体来说就是，在任意时间点，可读流都处于下面三种状态中的一种：
+
+- `readable._readableState.flowing = null`
+- `readable._readableState.flowing = false`
+- `readable._readableState.flowing = true`
+
+当 `readable._readableState.flowing` 为 `null` 时，没有提供消耗可读流数据的机制，
+因此流并不会生成数据。
+
+为 `data` 事件添加监听器，或者调用 `readable.pipe()` 方法，又或者调用 `readable.resume()`
+方法，将会把流的 `readable._readableState.flowing` 切换为 `true`，此时，可读流开始生成数据，
+并在数据生成时主动发射事件。
+
+调用 `readable.pause()`，`readable.unpipe()` 或者接收 `back pressure` 事件会将流的
+`readable._readableState.flowing` 设置为 `false`，暂时停止事件的流动，
+但并不会停止数据生成。
+
+当 `readable._readableState.flowing` 为 `false` 时，数据可能会在流的内部缓冲区累积。
 
 
 
