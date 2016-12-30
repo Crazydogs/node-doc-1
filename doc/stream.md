@@ -537,6 +537,175 @@ pipe 的目标的话，调用 `stream.pause()` 方法并不能保证当 pipe 目
 
 - 返回值 <Boolean>
 
+`readable.isPaused()` 方法返回当前可读流所处的状态。此方法主要是被 `readable.pipe()`
+方法的底层机制调用，一般来说是没有理由直接使用此方法的。
+
+```js
+    const readable = new stream.Readable
+
+    readable.isPaused() // === false
+    readable.pause()
+    readable.isPaused() // === true
+    readable.resume()
+    readable.isPaused() // === false
+```
+
+#### readable.pause()
+添加于 v0.9.4
+
+- 返回值 `this`
+
+`readable.pause()` 方法会让处于流模式的可读流停止发射 `data` 事件，并退出流模式。
+新的可用数据将会留在内部的缓冲区中
+
+```js
+    const readable = getReadableStreamSomehow();
+    readable.on('data', (chunk) => {
+      console.log(`Received ${chunk.length} bytes of data.`);
+      readable.pause();
+      console.log('There will be no additional data for 1 second.');
+      setTimeout(() => {
+        console.log('Now data will start flowing again.');
+        readable.resume();
+      }, 1000);
+    });
+```
+
+#### readable.pipe(destination[, options])
+添加于 v0.9.4
+
+- 参数 `destination` <stream.Writable> 写入数据的目标
+- 参数 `options` <Object> pip 操作的参数
+    - `end` <Boolean> 是否在可读流结束的时候关闭可写流，默认为 `true`
+
+`readable.pipe()` 方法将一个可写流附到可读流上，同时将可写流切换到流模式，
+并把所有数据推给可写流。数据流会被自动管理，所以不用担心可写流被快速的可读流打满溢出。
+
+下面这个例子中，可读流讲所有数据写到 `file.txt` 文件中。
+
+```js
+    const readable = getReadableStreamSomehow();
+    const writable = fs.createWriteStream('file.txt');
+    // All the data from readable goes into 'file.txt'
+    readable.pipe(writable);
+```
+
+可以将多个可写流附加到单个可读流。
+
+`readable.pipe()` 方法返回值是对 pipe 目标的引用，以便使用链式调用：
+
+```js
+    const r = fs.createReadStream('file.txt');
+    const z = zlib.createGzip();
+    const w = fs.createWriteStream('file.txt.gz');
+    r.pipe(z).pipe(w);
+```
+
+默认情况下，当可读源发射 `end` 事件的时候，目标可写流会自动调用 `stream.end()`
+方法，导致可写流不能再写入。如果想阻止此默认行为，须要将 `end` 选项设置为 false，
+让目标可写流保持打开状态，像下面的例子：
+
+```js
+    der.pipe(writer, { end: false });
+    reader.on('end', () => {
+      writer.end('Goodbye\n');
+    });
+```
+
+一个重要的警告是，如果可读流抛出错误，目标可写流并不会自动关闭。如果发生错误，
+则必须手动关闭每一个流，以防止内存泄露。
+
+注意：prcess.stderr 和 process.stdout 可写流在 Node.js 进程退出之前从不关闭，
+不管传入什么选项都会被忽视。
+
+#### readable.read([size])
+添加于 v0.9.4
+
+- 参数 size <Number> 可选参数，指定要读取的数据量。
+- 返回值 <String> | <Buffer> | <Null>
+
+`readable.read()` 方法从内部缓冲区抓取并返回数据。如果没有可用数据，则返回 `null`。
+数据默认以 `Buffer` 对象返回，除非使用 `readable.setEncoding()` 方法设定了编码，
+或者流在对象模式下运行。
+
+`size` 参数指定了要读取的字节数。如果没有那么多字节的数据可用，除非已经到了数据的末尾，
+否则将会返回 `null`。如果到达了流末尾，将返回保留在内部缓冲区的所有数据
+(即使这些数据已经超过了指定字节数)。
+
+如果未指定 `size` 参数，此方法将返回包含在内部缓冲区中的所有数据。
+
+只有在暂停模式下的留才可以调用 `readable.read()` 方法。在流模式下，`readable.read()`
+会自动被调用，直到内部缓冲区耗尽。
+
+```js
+    const readable = getReadableStreamSomehow();
+    readable.on('readable', () => {
+      var chunk;
+      while (null !== (chunk = readable.read())) {
+        console.log(`Received ${chunk.length} bytes of data.`);
+      }
+    });
+```
+
+一般来说，建议开发者避免使用 `readable` 和 `readable.read()` 方法来支持 `readable.pipe()`
+或 `data` 事件的使用。
+
+对象模式下的流调用 `read.read(size)` 总是返回单个对象，无视 `size` 参数的值。
+
+注意：如果 `readable.read()` 方法返回了一个数据块，还会触发一个 `data` 事件。
+
+注意：在 `end` 事件触发后调用 `stream.read([size])` 方法将返回 `null`，不会产生错误。
+
+#### readable.resume()
+添加于 v0.9.4
+
+- 返回值 `this`
+
+`readable.resume()` 方法让一个显式暂停的流重新开始发射 `data` 事件，切换到流模式。
+
+`readable.resume()` 方法可以用于完全消耗掉数据流，而实际上并不对数据做任何处理，
+可参考下面的例子：
+
+```js
+    getReadableStreamSomehow()
+      .resume()
+      .on('end', () => {
+        console.log('Reached the end, but did not read anything.');
+      });
+```
+
+#### readable.setEncoding(encoding)
+添加于 v0.9.4
+
+- 参数 `encoding` <String> 要使用的编码
+- 返回值 `this`
+
+`readable.setEncoding()` 方法可以设置从可读流读取的数据的默认字符编码。
+
+设置编码会让流数据以字符串的形式传递而不是默认的 `Buffer` 对象。例如，调用
+`readable.setEncoding('utf8')` 会让输出的数据按 UTF-8 解析，并以字符串传递。
+调用 `readable.setEncoding('hex')` 会让数据按照十六进制格式编码。
+
+可读流可以正确的处理流中的多字节字符，如果只是简单的拉取 `Buffer` 对象，
+会导致多字节字符不适当地解码。
+
+可以使用 `readable.setEncoding(null)` 来禁用编码。这在处理二进制数据，
+或分布在多个块上的大型多字节字符时很有效。
+
+```js
+    const readable = getReadableStreamSomehow();
+    readable.setEncoding('utf8');
+    readable.on('data', (chunk) => {
+      assert.equal(typeof chunk, 'string');
+      console.log('got %d characters of string data', chunk.length);
+    });
+```
+
+#### readable.unpipe([destination])
+添加于 v0.9.4
+
+- 参数 `destination` <stream.Writable> 可选参数，指定要解绑的流。
+
 
 
 
