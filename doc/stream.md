@@ -1,4 +1,4 @@
-## Stream
+# Stream
 
 <div class="s s2"></div>
 
@@ -68,7 +68,7 @@ Duplex 流和 Transform 流都是同时可读写的，所以他们会在内部�
 Readable 端允许从 socket 获取、消耗数据，Writable 端允许向 socket 写入数据。
 数据写入的速度很有可能与消耗的速度有差距，所以两端可以独立操作和缓冲是很重要的。
 
-## 使用流涉及的 API
+# 使用流涉及的 API
 
 几乎所有的 Node.js 应用，无论多简单，多多少少都会以某种方式用到流。下面是一个在
 实现 Http 服务的 Node 应用中对流的使用。
@@ -706,6 +706,271 @@ pipe 的目标的话，调用 `stream.pause()` 方法并不能保证当 pipe 目
 
 - 参数 `destination` <stream.Writable> 可选参数，指定要解绑的流。
 
+`readable.unpipe()` 方法会移除之前使用 `stream.pipe()` 附加的可写流。
+
+如果没有指定 `destination` 参数，则会移除附加的所有可写流。
+
+如果指定了 `destination` 参数，但指定的目标并没有附加在可读流上，则此方法不做任何操作。
+
+```js
+    const readable = getReadableStreamSomehow();
+    const writable = fs.createWriteStream('file.txt');
+    // All the data from readable goes into 'file.txt',
+    // but only for the first second
+    readable.pipe(writable);
+    setTimeout(() => {
+      console.log('Stop writing to file.txt');
+      readable.unpipe(writable);
+      console.log('Manually close the file stream');
+      writable.end();
+    }, 1000);
+```
+
+#### readable.unshift(chunk)
+添加于 v0.9.11
+
+- 参数 `chunk` <Buffer> | <String> 要退回可读流的数据
+
+`readable.unshift()` 方法将一个数据块推回内部缓冲区。此方法主要用于数据被不应该消耗数据的代码消耗了，
+须要撤销这次数据消耗的情况，退回缓冲区让数据可以传到其他正确的地方去。
+
+注意：`stream.unshift(chunk)` 方法无法在 `end` 事件触发或者抛出运行错误之后调用。
+
+使用 `stream.unshift()` 的开发者通常应该考虑使用 `Transform` 流代替。更多信息，
+可以参考本文档第二部分 `开发者创建自定义 stream 所需要的 API`。
+
+```js
+    // Pull off a header delimited by \n\n
+    // use unshift() if we get too much
+    // Call the callback with (error, header, stream)
+    const StringDecoder = require('string_decoder').StringDecoder;
+    function parseHeader(stream, callback) {
+      stream.on('error', callback);
+      stream.on('readable', onReadable);
+      const decoder = new StringDecoder('utf8');
+      var header = '';
+      function onReadable() {
+        var chunk;
+        while (null !== (chunk = stream.read())) {
+          var str = decoder.write(chunk);
+          if (str.match(/\n\n/)) {
+            // found the header boundary
+            var split = str.split(/\n\n/);
+            header += split.shift();
+            const remaining = split.join('\n\n');
+            const buf = Buffer.from(remaining, 'utf8');
+            stream.removeListener('error', callback);
+            // set the readable listener before unshifting
+            stream.removeListener('readable', onReadable);
+            if (buf.length)
+              stream.unshift(buf);
+            // now the body of the message can be read from the stream.
+            callback(null, header, stream);
+          } else {
+            // still reading the header.
+            header += str;
+          }
+        }
+      }
+    }
+```
+
+注意：`stream.unshift(chunk)` 与 `stream.push(chunk)` 方法不同，并不会改变流的内部状态来结束读取过程。
+在读取数据期间(比如在一个自定义流的 _read() 中)使用 `stream.unshift()` 方法可能会导致意外的结果。
+在调用 `readable.unshift()` 后立即调用 `stream.push()` 方法会正确的设置流的内部状态。
+但最好还是不要在读取过程中调用此方法。
+
+#### readable.wrap(stream)
+添加于 v0.9.4
+
+- 参数 `stream` <Stream> 旧的可读流
+
+在 0.10 版本之前的 Node.js 中，并没有实现当前定义的流模块的 API。(详见兼容性部分)
+
+在使用旧版的 Node.js 库，使用只有 `stream.pause()` 方法和 `data` 事件发射的流时，
+可以用 `readable.wrap()` 方法将其包装成一个新的可读流。
+
+很少会有使用 `readable.wrap()` 方法的时候，它主要是方便与较早的 Node.js 应用和库交互的。
+
+例如：
+
+```js
+    const OldReader = require('./old-api-module.js').OldReader;
+    const Readable = require('stream').Readable;
+    const oreader = new OldReader;
+    const myReader = new Readable().wrap(oreader);
+
+    myReader.on('readable', () => {
+      myReader.read(); // etc.
+    });
+```
+
+## Duplex and Transform Streams
+
+### stream.Duplex 类
+添加于 v0.9.4
+
+双工流(Duplex stream) 是同时实现了可读和可写接口的流。
+
+常见的双工流包括：
+
+- TCP sockets
+- zlib streams
+- crypto streams
+
+### stream.Transform 类
+添加于 v0.9.4
+
+Transform 流是输出以某种方式依赖于输入的双工流。作为双工流，他也实现了可读于可写的接口。
+
+常见的 Transform 流包括：
+
+- zlib streams
+- crypto streams
+
+# 创建自定义 stream 所需要的 API
+
+stream 模块的 API 设计使其可以用 JavaScript 的原型继承简单地实现自定义的流。
+
+首先，开发者须要声明一个新的 JavaScript 类，扩展自四个基本类之一(`stream.Writable`,
+`stream.Readable`, `stream.Duplex`, `stream.Transform`)，并确保调用了父类的构造函数：
+
+```js
+    const Writable = require('stream').Writable;
+
+    class MyWritable extends Writable {
+      constructor(options) {
+        super(options);
+      }
+    }
+```
+
+这个新的类须要实现一个或多个特定的方法，具体取决于要创建流的类型，详见下表：
+
+| 用途                | 类               | 实现的方法             |
+| -------------------|------------------|-----------------------|
+| 只读                |Readable          |_read                  |
+| 只写                |Writable          |_write, _writev        |
+| 读写                |Duplex            |_read, _write, _writev |
+| 写数据读结果         |Transform         |_transform, _flush     |
+
+注意：实现中请不要调用流模块的"公用"方法(在 `使用流涉及的 API` 部分中讲到的)。
+这样做可能会导致消耗流数据是产生不良的副作用。
+
+## 构造简单的流
+
+对于很多简单的情况，可以不通过继承，直接通过传递适当的选项调用构造函数来创建
+`stream.Writable`, `stream.Readable`, `stream.Duplex`, `stream.Transform` 实例。
+
+例如：
+
+```js
+    const Writable = require('stream').Writable;
+
+    const myWritable = new Writable({
+      write(chunk, encoding, callback) {
+        // ...
+      }
+    });
+```
+
+## 实现一个可写流
+
+可以通过继承扩展 `stream.Writable` 类来实现一个可写流。
+
+自定义流须必须调用 `new stream.Writable([options])` 构造函数并实现 `writable._write()`
+方法，也可以实现可选的 `writable._writev()` 方法。
+
+### 构造函数 Constructor: new stream.Writable([options])
+
+- 参数 `options` <Object>
+    - `highWaterMark` <Number> 指定缓存数量达到什么水平的时候 `stream.write()`
+    开始返回 `false`。默认是 `16384`(16kb) 或对象模式的流是 `16`(个对象)
+    - `decodeStrings` <Boolean> 指定是否在将字符串数据传给 `_write()` 方法前解码，
+    默认为 `true`
+    - `objectMode` <Boolean> 决定调用 `stream.write(anyObj)` 是否合法。如果设置了此属性，
+    则可以向流中写入除了字符串和 `Buffer` 对象之外的其他 JavaScript 值。默认为
+    `false`
+    - `write` <Function> 对 `stream._write()` 的实现
+    - `writev` <Function> 对 `stream._writev()` 的实现
+
+例如：
+
+```js
+    const Writable = require('stream').Writable;
+
+    class MyWritable extends Writable {
+      constructor(options) {
+        // Calls the stream.Writable() constructor
+        super(options);
+      }
+    }
+```
+
+或者使用 ES6 之前的风格构造：
+
+```js
+    const Writable = require('stream').Writable;
+    const util = require('util');
+
+    function MyWritable(options) {
+      if (!(this instanceof MyWritable))
+        return new MyWritable(options);
+      Writable.call(this, options);
+    }
+    util.inherits(MyWritable, Writable);
+```
+
+或者使用简化构造方法
+
+```js
+    const Writable = require('stream').Writable;
+
+    const myWritable = new Writable({
+      write(chunk, encoding, callback) {
+        // ...
+      },
+      writev(chunks, callback) {
+        // ...
+      }
+    });
+```
+
+### writable._write(chunk, encoding, callback)
+
+- 参数 `chunk` <Buffer> | <String> 将要被写入的数据。除非 `decodeStrings` 被设为
+`false`，否则都会是 `Buffer` 对象
+- 参数 `encoding` <String> 如果 chunk 为字符串，那此参数为字符串的编码，如果
+chunk 是 `Buffer` 对象或者流处于对象模式，`encoding` 参数被忽略
+- 参数 `callback` <Function> 在完成数据块的处理后须调用此函数(带可选的 error 参数)
+
+所有的可写流都必须提供 `stream._write()` 的实现，用于将数据写入底层。
+
+注意：Transform 流会提供自己的 `stream._write()` 函数实现。
+
+注意：**此函数不应该被直接调用。**子类只是提供它的实现，它只应被可写流的内部方法调用。
+
+`callback` 函数必须被调用，以通知对数据块的处理完成或是出现错误。如果发生错误，
+则传入一个错误对象作为他的第一个参数，否则传入 `null` 即可。
+
+须要注意的是，在调用 `writable._write()` 到 `callback` 函数被调用期间，调用
+`writable.write()` 写入的数据将会被放入缓冲区。调用 `callback` 函数将会发射一个
+`drain` 事件。如果流具备一次处理多个数据块的能力，则应该实现 `wratable._writev()`
+方法。
+
+如果设置了 `decodeStrings` 参数，那么 chunk 可能是一个字符串而不是一个 `Buffer`
+对象，`encoding` 参数将表示其字符编码。这是为了支持一些针对特定编码进行优化的实现。
+如果将 `decodeStrings` 显式设置为 `true`(此处存疑，原文为 false)，则可以安全地忽略
+`encoding` 参数，chunk 将会是 `Buffer` 对象。
+
+`writable._write()` 方法带有下划线前缀，说明它是一个内部方法，只提供给定义它的类内部使用，
+开发者不应直接调用它。
+
+### writable._writev(chunks, callback)
+
+- 参数 `chunks` <Array> 将要被写入的数据块，每一块数据的格式会是这样：`{ chunk:
+..., encoding: ...}`。
+- 参数 `callback` <Function> 接受一个可选的错误参数的回调函数，须要在处理完数据块后调用
 
 
 
@@ -736,7 +1001,7 @@ Readable stream 并不主动开始发送数据，直到显式表明可以接收�
 Readable stream 拥有两种模式：流动模式（flowing mode）和暂停模式（paused mode）。在流动模式中，数据从操作系统底层获取并尽可能快的传递给开发者；在暂停模式中，开发者必须显式调用 `stream.read()` 才能获取数据。其中，默认使用暂停模式。
 
 注意，如果没有为 `data` 事件设置监听器，没有设置 `stream.pipe()` 的输出对象，那么 stream 就会自动切换为流动模式，且数据会丢失。
-
+ 
 开发者可以通过以下方式切换为流动模式：
 
 - 添加 `data` 事件处理器监听数据
