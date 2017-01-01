@@ -881,7 +881,7 @@ stream 模块的 API 设计使其可以用 JavaScript 的原型继承简单地�
 自定义流须必须调用 `new stream.Writable([options])` 构造函数并实现 `writable._write()`
 方法，也可以实现可选的 `writable._writev()` 方法。
 
-### 构造函数 Constructor: new stream.Writable([options])
+### 构造函数 new stream.Writable([options])
 
 - 参数 `options` <Object>
     - `highWaterMark` <Number> 指定缓存数量达到什么水平的时候 `stream.write()`
@@ -972,8 +972,87 @@ chunk 是 `Buffer` 对象或者流处于对象模式，`encoding` 参数被忽�
 ..., encoding: ...}`。
 - 参数 `callback` <Function> 接受一个可选的错误参数的回调函数，须要在处理完数据块后调用
 
+注意：**此函数不应该被直接调用。**子类只是提供它的实现，它只应被可写流的内部方法调用。
 
+`writable._writev()` 函数是 `writeable.write()` 的补充，用于同时接收多个数据块，
+并进行处理。如果实现了此方法, 将会用当前缓冲区内的所有数据作为参数来调用它。
 
+`writable._writev()` 方法带有下划线前缀，说明它是一个内部方法，只提供给定义它的类内部使用，
+开发者不应直接调用它。
+
+### 写操作中的错误处理
+
+建议通过向 `callback` 函数传入错误对象作为第一个参数，来处理 `writable._write()`
+和 `writable._writev()` 过程中发生的错误。这样可写流就会抛出 `error` 事件。
+在 `writable._write()` 中直接抛出错误可能会导致与预期不一致的行为，具体取决于如何使用流。
+使用回调可确保一致和可预测的错误处理。
+
+```js
+    const Writable = require('stream').Writable;
+
+    const myWritable = new Writable({
+      write(chunk, encoding, callback) {
+        if (chunk.toString().indexOf('a') >= 0) {
+          callback(new Error('chunk is invalid'));
+        } else {
+          callback();
+        }
+      }
+    });
+```
+
+### 一个可写流示例
+
+下面展示一个非常简单(可以说没有意义)的自定义可写流实现。 虽然这个可写流实例没有任何实际的用处，
+但它展示了自定义可写流实例的每个必需元素：
+
+```js
+    const Writable = require('stream').Writable;
+
+    class MyWritable extends Writable {
+      constructor(options) {
+        super(options);
+      }
+
+      _write(chunk, encoding, callback) {
+        if (chunk.toString().indexOf('a') >= 0) {
+          callback(new Error('chunk is invalid'));
+        } else {
+          callback();
+        }
+      }
+    }
+```
+
+## 实现一个可读流
+
+可以通过继承扩展 `stream.Readable` 类来实现一个可写流。
+
+自定义流须必须调用 `new stream.Readable([options])` 构造函数并实现 `writable._write()`
+方法。
+
+### 构造函数 new stream.Readable([options])
+
+- 参数 `options` \<Object\>
+    - `highWaterMark` <Number> 缓冲区最大容量，默认为 16384(16kb)，对于对象模式的流，
+    默认为 16(个对象)。达到最大容量后停止从底层系统汲取数据。
+    - `encoding` <String> 如果指定了此参数，数据将会按照此编码解码为字符串，
+    默认值为 `null`
+    - `objectMode` <Boolean> 流是否工作在流模式下。即调用 `stream.read(n)` 返回一个值，
+    而不是返回指定长度的字符串或 `Buffer` 对象。
+    - `read` <Function> 对 `stream._read()` 的实现
+
+例如：
+```js
+    const Readable = require('stream').Readable;
+
+    class MyReadable extends Readable {
+      constructor(options) {
+        // Calls the stream.Readable(options) constructor
+        super(options);
+      }
+    }
+```
 
 
 
