@@ -1464,3 +1464,17 @@ const myTransform = new Transform({
 
 `stream.PassThrough` 是一个简单的 Transform 流，简单地将输入字节传递到输出。
 它的目的主要是用于示例和测试。但某些情况下，`stream.PassThrough` 可以作为一种构建块的新型流。
+
+# 附加注释
+
+## 与旧版 Node.js 间的兼容性
+
+在 Node.js 0.10 之前，可读流接口比较简单，但是功能还不完善。
+
+- 之前的可读流不会等待调用 `stream.read()` 方法，`data` 事件会立即开始发射。须要做一些额外的工作，
+接收数据并保存到缓冲区，防止数据流失。
+- `stream.pause()` 方法并不能保证使流暂停。这意味着即使是暂停的流，也有必要做好接收数据的准备。
+
+在 Node.js v0.10 中添加了 Readable 类。为了和旧的 Node.js 程序兼容，可读流在添加
+`data` 事件监听器或者调用 `stream.resume()` 方法时会切换到流模式。现在即使不添加额外的
+`readable` 事件监听或者调用 `stream.read()` 方法，也不用担心数据丢失了。
