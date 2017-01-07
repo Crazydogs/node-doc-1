@@ -28,7 +28,7 @@ fs.unlinkSync('/tmp/hello');
 console.log('successfully deleted /tmp/hello');
 ```
 
-由于异步方法没有固定的执行顺序，所以下面的这段代码很有可能会抛出抛出：
+由于异步方法没有固定的执行顺序，所以下面的这段代码很有可能会抛出错误：
 
 ```js
 fs.rename('/tmp/hello', '/tmp/world', (err) => {
