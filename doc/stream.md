@@ -21,7 +21,7 @@ Node.js 提供了很多原生的流对象，如 HTTP 服务的 request，process
 ## 本文档的结构
 
 本文档分为两个主要部分，和一个附加注释部分。
-第一部分介绍了开发者需要在开发中使用 steam 所涉及的 API。
+第一部分介绍了开发者需要在开发中使用 steam 所涉及的 API[链接][使用流涉及的 API]。
 第二部分介绍了开发者创建自定义 stream 所需要的 API。
 
 ## Stream 的类型
@@ -1478,3 +1478,61 @@ const myTransform = new Transform({
 在 Node.js v0.10 中添加了 Readable 类。为了和旧的 Node.js 程序兼容，可读流在添加
 `data` 事件监听器或者调用 `stream.resume()` 方法时会切换到流模式。现在即使不添加额外的
 `readable` 事件监听或者调用 `stream.read()` 方法，也不用担心数据丢失了。
+
+虽然大部分的应用可以正常工作，但是在这些时候会引入边界情况：
+
+- 没有添加任何 `data` 时间的监听。
+- `stream.resume()` 方法没有被调用。
+- 流没有被 pipe 到任何可写流。
+
+例如，考虑以下代码：
+```js
+    // WARNING!  BROKEN!
+    net.createServer((socket) => {
+
+      // we add an 'end' method, but never consume the data
+      socket.on('end', () => {
+        // It will never get here.
+        socket.end('The message was received but was not processed.\n');
+      });
+
+    }).listen(1337);
+```
+
+在 0.10 之前的版本，传入的数据会被直接丢弃，而在之后的版本中，socket 会保持在暂停模式。
+
+解决这个问题的方法是在流开始的时候调用一次 `stream.resume()`。
+
+除了这样，还可以使用 `readable.wrap()` 方法包装 0.10 之前的可读流，来确保切换到流模式。
+
+```js
+    // Workaround
+    net.createServer((socket) => {
+
+      socket.on('end', () => {
+        socket.end('The message was received but was not processed.\n');
+      });
+
+      // start the flow of data, discarding it.
+      socket.resume();
+
+    }).listen(1337);
+```
+
+## readable.read(0)
+
+在某些情况下，有必要触发底层可读流机制的刷新，而不实际消耗任何数据。此时，
+可以调用 `readable.read(0)` 方法，它总是返回null。
+
+如果内部缓冲区大小低于 `highWaterMark`，并且流当前没有在读取数据，调用
+`stream.read(0)` 将触发底层的 `stream._read()` 调用。
+
+大多数应用都不需要这么做，但在Node.js中，特别是在可读流类内部，有这样做的情况，
+
+## readable.push('')
+
+不推荐使用 `readable.push('')`。
+
+将零字节字符串或缓冲区推送到非对象模式的流有一个有趣的副作用。因为它是对 `readable.push()`
+的调用，调用将结束读取过程。 但是，因为参数是一个空字符串，所以并没有数据被添加到可读缓冲区，
+所以没有什么数据可供消费。
