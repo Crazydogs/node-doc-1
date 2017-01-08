@@ -236,9 +236,10 @@ Writable Streams，可写流，是对数据写入的目标的一种抽象。
 #### pipe 事件
 添加于 v0.9.4
 
-- 参数 `src` <stream.Readable> 流向此可写流的源
+- 参数 `src` \<[stream.Readable](#streamreadable-类)\> 流向此可写流的源
 
-`pipe` 事件会在一个可读流调用 `stream.pipe()`，将一个可写流添加到他的目标集合的时候触发。
+`pipe` 事件会在一个可读流调用 [stream.pipe()](#readablepipedestination-options)，
+将一个可写流添加到他的目标集合的时候触发。
 
 ```js
     const writer = getWritableStreamSomehow();
@@ -253,19 +254,20 @@ Writable Streams，可写流，是对数据写入的目标的一种抽象。
 #### unpipe 事件
 添加于 v0.9.4
 
-- 参数 `src` <Readable Stream> 停止流向此可写流的源
+- 参数 `src` <[Readable](#streamreadable-类) Stream> 停止流向此可写流的源
 
-`pipe` 事件会在一个可读流调用 `stream.unpipe()`，将一个可写流从他的目标集合移除的时候触发。
+`pipe` 事件会在一个可读流调用 [stream.unpipe()](#readableunpipedestination)，
+将一个可写流从他的目标集合移除的时候触发。
 
 ```js
-const writer = getWritableStreamSomehow();
-const reader = getReadableStreamSomehow();
-writer.on('unpipe', (src) => {
-  console.error('Something has stopped piping into the writer.');
-  assert.equal(src, reader);
-});
-reader.pipe(writer);
-reader.unpipe(writer);
+    const writer = getWritableStreamSomehow();
+    const reader = getReadableStreamSomehow();
+    writer.on('unpipe', (src) => {
+      console.error('Something has stopped piping into the writer.');
+      assert.equal(src, reader);
+    });
+    reader.pipe(writer);
+    reader.unpipe(writer);
 ```
 
 #### writable.cork()
@@ -280,15 +282,15 @@ reader.unpipe(writer);
 #### writable.end([chunk][, encoding][, callback])
 添加于 v0.9.4
 
-- 参数 `chunk` <String> | <Buffer> | <any> 可选的将要写入的数据，对于处于正常模式的流来说，
-chunk 必须是字符串或者 Buffer 对象，而对于处于对象模式的流，chunk 可以是除了
-null 之外的任意 JavaScript 值
-- 参数 `encoding` <String> 如果 chunk 是字符串，此参数为其编码
-- 参数 `callback` <Function> 可选的回调函数，当流完成时调用。
+- 参数 `chunk` \<String\> | \<Buffer\> | \<any\> 可选的将要写入的数据，
+对于处于正常模式的流来说，chunk 必须是字符串或者 Buffer 对象，而对于处于对象模式的流，
+chunk 可以是除了 null 之外的任意 JavaScript 值
+- 参数 `encoding` \<String\> 如果 chunk 是字符串，此参数为其编码
+- 参数 `callback` \<Function\> 可选的回调函数，当流完成时调用。
 
-调用 writable.end() 方法表示流将不会再有新的数据写入。可选的 chunk 和 encoding
+调用 `writable.end()` 方法表示流将不会再有新的数据写入。可选的 chunk 和 encoding
 参数允许在流关闭之前写入最后一块数据。如果提供了可选的 callback 参数，这个函数会成为
-`finish` 事件的一个监听器。
+[finish](#finish-事件) 事件的一个监听器。
 
 在调用 writable.end() 之后调用 writable.write() 会抛出一个错误。
 
@@ -303,10 +305,10 @@ null 之外的任意 JavaScript 值
 #### writable.setDefaultEncoding(encoding)
 添加于 v0.11.15
 
-- 参数 `encoding` <String> 新的默认编码
+- 参数 `encoding` \<String\> 新的默认编码
 - 返回值 `this`
 
-`writable.setDefaultEncoding()` 方法用于设置可写流的默认编码
+`writable.setDefaultEncoding()` 方法用于设置[可写流](#streamwritable-类)的默认编码
 
 #### writable.uncork()
 添加于 v0.11.2
@@ -341,10 +343,10 @@ null 之外的任意 JavaScript 值
 
 #### writable.write(chunk[, encoding][, callback])
 
-- 参数 chunk <String> | <Buffer> 待写入的数据
-- 参数 encoding <String> 如果 chunk 是字符串，则此参数为其编码
-- 参数 callback <Function> 当数据块被刷新到底层的时候触发
-- 返回值 <Boolean> 如果流想要等 `drain` 事件触发后，再写入新的数据，则返回 `false`，
+- 参数 chunk \<String\> | \<Buffer\> 待写入的数据
+- 参数 encoding \<String\> 如果 chunk 是字符串，则此参数为其编码
+- 参数 callback \<Function\> 当数据块被刷新到底层的时候触发
+- 返回值 \<Boolean\> 如果流想要等 `drain` 事件触发后，再写入新的数据，则返回 `false`，
 否则返回 `true`
 
 `writable.write()` 方法将数据写入流，并在数据完成处理之后调用提供的回调函数。
@@ -380,25 +382,25 @@ null 之外的任意 JavaScript 值
 
 在流模式下，流会从底层系统尽快地读取数据，然后通过 `EventEmitter` 的事件接口提供给应用。
 
-在暂停模式下，必须显示的调用 stream.read() 从流中读取数据。
+在暂停模式下，必须显示的调用 [stream.read](#readablereadsize) 从流中读取数据。
 
 处在暂停模式的流可以通过下面的方式切换到流模式
 
-- 给流的 `data` 事件添加监听器
-- 调用流的 `stream.resume()` 方法
-- 调用 `stream.pipe()` 方法将数据送入一个可写流
+- 给流的 [data](#data-事件) 事件添加监听器
+- 调用流的 [stream.resume()](#readableresume) 方法
+- 调用 [stream.pipe()](#readablepipedestination-options) 方法将数据送入一个可写流
 
 还可以通过下面的方式切回暂停模式
 
-- 流没有 pipe 的目标时调用 `stream.pause()` 方法
-- 流如果有 pipe 的目标，须要移除所有 `data` 事件的监听器，并通过 `stream.unpipe()`
-方法移除所有的 pipe 目标。
+- 流没有 pipe 的目标时调用 [stream.pause()](#readablepause) 方法
+- 流如果有 pipe 的目标，须要移除所有 [data](#data-事件) 事件的监听器，并通过
+[stream.unpipe()](#readableunpipedestination) 方法移除所有的 pipe 目标。
 
 一个重要的概念是，如果没有消耗或忽略数据的机制的话，可读流将不会生成数据。
 如果数据的消费者失效了或者被移除，可读流将会尝试停止生成数据。
 
-注意：由于向后兼容的原因，移除 `data` 事件监听器并不会将流暂停。另外，如果还有
-pipe 的目标的话，调用 `stream.pause()` 方法并不能保证当 pipe 目标索取数据时，
+注意：由于向后兼容的原因，移除 [data](#data-事件) 事件监听器并不会将流暂停。另外，如果还有
+pipe 的目标的话，调用 [stream.pause()](#readablepause) 方法并不能保证当 pipe 目标索取数据时，
 流还能保持在暂停状态。
 
 注意：如果可读流切换到流模式，但却没有数据的消费者接收数据，则数据会流失。
@@ -451,7 +453,7 @@ pipe 的目标的话，调用 `stream.pause()` 方法并不能保证当 pipe 目
 #### data 事件
 添加于 v0.9.4
 
-- 参数 chunk <Buffer> | <String> | <any> 数据块。对于处在对象模式的流，chunk
+- 参数 chunk \<Buffer\> | \<String\> | \<any\> 数据块。对于处在对象模式的流，chunk
 可以是除了 `null` 之外任意的 JavaScript 值，否则 chunk 只能是字符串或者 `Buffer`
 对象。
 
@@ -478,7 +480,7 @@ pipe 的目标的话，调用 `stream.pause()` 方法并不能保证当 pipe 目
 `end` 事件会在可读流已经没有更多数据提供的时候触发。
 
 注意：除非数据被完全消耗，否则 `end` 事件是不会触发的。可以通过切换到流模式，
-或者不停调用 `stream.read()` 方法耗尽数据使其触发。
+或者不停调用 [stream.read()](#readablereadsize) 方法耗尽数据使其触发。
 
 ```js
     const readable = getReadableStreamSomehow();
@@ -493,7 +495,7 @@ pipe 的目标的话，调用 `stream.pause()` 方法并不能保证当 pipe 目
 #### error 事件
 添加于 v0.9.4
 
-- 参数 <Error>
+- 参数 \<Error\>
 
 `error` 事件可以在任意时间触发。通常是由于底层内部错误或者流尝试推送无效数据块导致的。
 
@@ -515,8 +517,8 @@ pipe 的目标的话，调用 `stream.pause()` 方法并不能保证当 pipe 目
 在到达流数据结尾但还没发出 `end` 事件之前，会先触发 `readable` 事件。
 
 `readable` 事件表示了流有新的信息，可能是新的数据可用，或者到达流数据的末尾。
-如果是前者，调用 `stream.read()` 将会返回可用的数据，如果是后者，`stream.read()`
-会返回 `null`。在下面的示例中， `foo.txt` 是一个空文件：
+如果是前者，调用 [stream.read()](#readablereadsize) 将会返回可用的数据，如果是后者，
+[stream.read()](#readablereadsize) 会返回 `null`。在下面的示例中， `foo.txt` 是一个空文件：
 
 ```js
     const fs = require('fs');
@@ -541,7 +543,7 @@ pipe 的目标的话，调用 `stream.pause()` 方法并不能保证当 pipe 目
 
 #### readable.isPaused()
 
-- 返回值 <Boolean>
+- 返回值 \<Boolean\>
 
 `readable.isPaused()` 方法返回当前可读流所处的状态。此方法主要是被 `readable.pipe()`
 方法的底层机制调用，一般来说是没有理由直接使用此方法的。
@@ -561,7 +563,7 @@ pipe 的目标的话，调用 `stream.pause()` 方法并不能保证当 pipe 目
 
 - 返回值 `this`
 
-`readable.pause()` 方法会让处于流模式的可读流停止发射 `data` 事件，并退出流模式。
+`readable.pause()` 方法会让处于流模式的可读流停止发射 [data](#data-事件) 事件，并退出流模式。
 新的可用数据将会留在内部的缓冲区中
 
 ```js
@@ -580,9 +582,9 @@ pipe 的目标的话，调用 `stream.pause()` 方法并不能保证当 pipe 目
 #### readable.pipe(destination[, options])
 添加于 v0.9.4
 
-- 参数 `destination` <stream.Writable> 写入数据的目标
-- 参数 `options` <Object> pip 操作的参数
-    - `end` <Boolean> 是否在可读流结束的时候关闭可写流，默认为 `true`
+- 参数 `destination` \<[stream.Writable](#streamwritable-类)\> 写入数据的目标
+- 参数 `options` \<Object\> pip 操作的参数
+    - `end` \<Boolean\> 是否在可读流结束的时候关闭可写流，默认为 `true`
 
 `readable.pipe()` 方法将一个可写流附到可读流上，同时将可写流切换到流模式，
 并把所有数据推给可写流。数据流会被自动管理，所以不用担心可写流被快速的可读流打满溢出。
@@ -607,9 +609,10 @@ pipe 的目标的话，调用 `stream.pause()` 方法并不能保证当 pipe 目
     r.pipe(z).pipe(w);
 ```
 
-默认情况下，当可读源发射 `end` 事件的时候，目标可写流会自动调用 `stream.end()`
-方法，导致可写流不能再写入。如果想阻止此默认行为，须要将 `end` 选项设置为 false，
-让目标可写流保持打开状态，像下面的例子：
+默认情况下，当可读源发射 `end` 事件的时候，目标可写流会自动调用
+[stream.end()](#writableendchunk-encoding-callback) 方法，导致可写流不能再写入。
+如果想阻止此默认行为，须要将 `end` 选项设置为 false，让目标可写流保持打开状态，
+像下面的例子：
 
 ```js
     der.pipe(writer, { end: false });
@@ -627,8 +630,8 @@ pipe 的目标的话，调用 `stream.pause()` 方法并不能保证当 pipe 目
 #### readable.read([size])
 添加于 v0.9.4
 
-- 参数 size <Number> 可选参数，指定要读取的数据量。
-- 返回值 <String> | <Buffer> | <Null>
+- 参数 size \<Number\> 可选参数，指定要读取的数据量。
+- 返回值 \<String\> | \<Buffer\> | \<Null\>
 
 `readable.read()` 方法从内部缓冲区抓取并返回数据。如果没有可用数据，则返回 `null`。
 数据默认以 `Buffer` 对象返回，除非使用 `readable.setEncoding()` 方法设定了编码，
@@ -660,7 +663,8 @@ pipe 的目标的话，调用 `stream.pause()` 方法并不能保证当 pipe 目
 
 注意：如果 `readable.read()` 方法返回了一个数据块，还会触发一个 `data` 事件。
 
-注意：在 `end` 事件触发后调用 `stream.read([size])` 方法将返回 `null`，不会产生错误。
+注意：在 `end` 事件触发后调用 [stream.read([size])](#readablereadsize)
+方法将返回 `null`，不会产生错误。
 
 #### readable.resume()
 添加于 v0.9.4
