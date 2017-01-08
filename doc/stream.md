@@ -21,8 +21,8 @@ Node.js 提供了很多原生的流对象，如 HTTP 服务的 request，process
 ## 本文档的结构
 
 本文档分为两个主要部分，和一个[附加注释](#附加注释)部分。
-第一部分介绍了开发者需要在开发中[使用 steam 所涉及的 API](#使用流涉及的-api)。
-第二部分介绍了开发者[创建自定义 stream 所需要的 API](#创建自定义-stream-所需要的-api)。
+- 第一部分介绍了开发者需要在开发中[使用 steam 所涉及的 API](#使用流涉及的-api)。
+- 第二部分介绍了开发者[创建自定义 stream 所需要的 API](#创建自定义-stream-所需要的-api)。
 
 ## Stream 的类型
 
@@ -44,30 +44,32 @@ Javascript 类型(除了 null, 它在流中有特殊的含义)的。这样的流
 
 ### 缓冲区
 
-Readable 和 Writable 流都会将数据储存在内部的缓冲区中。缓冲区可以分别通过
-`writable._writableState.getBuffer()` 和 `readable._readableState.buffer` 来访问。
+[Readable](#streamreadable-类) 和 [Writable](#streamwritable-类) 流都会将数据储存在内部的缓冲区中。
+缓冲区可以分别通过 `writable._writableState.getBuffer()` 和 `readable._readableState.buffer` 来访问。
 
 缓冲区中能容纳的数据数量由 stream 构造函数的 `highWaterMark` 选项决定。对于普通的流来说，
 `highWaterMark` 选项表示总共可容纳的比特数。对于对象模式的流，该参数表示可以容纳的对象个数。
 
-当一个可读实例调用 stream.push() 方法的时候，数据将会被推入缓冲区。如果没有数据的消费者出现，
-调用 stream.read() 方法的话，数据就会一直留在缓冲队列中。
+当一个可读实例调用 [stream.push()](#readablepushchunk-encoding) 方法的时候，
+数据将会被推入缓冲区。如果没有数据的消费者出现，调用 [stream.read()](#readable_readsize)
+方法的话，数据就会一直留在缓冲队列中。
 
 如果可读实例内部的缓冲区大小达到了创建时由 `highWaterMark` 指定的阈值，
 可读流就会暂时停止从底层资源汲取数据，直到当前缓冲的数据成功被消耗掉
 (也就是说，流停止调用内部用来填充缓冲区的 readable._read() 方法)。
 
-在一个在可写实例上调用 writable.write(chunk) 方法的时候，数据会写入可写流的缓冲区。
-如果缓冲区的数据量低于 highWaterMark 设定的值，调用 `writable.write()` 方法会返回 `true`，
-否则 write 方法会返回 `false`。
+在一个在可写实例上调用 [writable.write(chunk)](#writablewritechunk-encoding-callback)
+方法的时候，数据会写入可写流的缓冲区。如果缓冲区的数据量低于 `highWaterMark` 设定的值，
+调用 `writable.write()` 方法会返回 `true`，否则 write 方法会返回 `false`。
 
-stream 模块的 API，特别是 `stream.pipe()`，最主要的目的就是将数据的流动缓冲到一个可接受的水平，
-不让不同速度的数据源之间的差异导致内存被占满。
+stream 模块的 API，特别是 [stream.pipe()](#readablepipedestination-options)，
+最主要的目的就是将数据的流动缓冲到一个可接受的水平，不让不同速度的数据源之间的差异导致内存被占满。
 
-Duplex 流和 Transform 流都是同时可读写的，所以他们会在内部维持两个缓冲区，分别用于读取和写入，
-这样就可以允许两边同时独立操作，维持高效的数据流。比如说 `net.Socket` 是一个 Duplex 流，
-Readable 端允许从 socket 获取、消耗数据，Writable 端允许向 socket 写入数据。
-数据写入的速度很有可能与消耗的速度有差距，所以两端可以独立操作和缓冲是很重要的。
+[Duplex](#streamduplex-类) 流和 [Transform](#streamtransform-类) 流都是同时可读写的，
+所以他们会在内部维持两个缓冲区，分别用于读取和写入，这样就可以允许两边同时独立操作，
+维持高效的数据流。比如说 `net.Socket` 是一个 [Duplex](#streamduplex-类) 流，Readable 端允许从 socket 获取、
+消耗数据，Writable 端允许向 socket 写入数据。数据写入的速度很有可能与消耗的速度有差距，
+所以两端可以独立操作和缓冲是很重要的。
 
 #使用流涉及的 API
 
