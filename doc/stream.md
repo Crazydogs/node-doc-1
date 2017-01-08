@@ -796,12 +796,13 @@ pipe 的目标的话，调用 [stream.pause()](#readablepause) 方法并不能�
 #### readable.wrap(stream)
 添加于 v0.9.4
 
-- 参数 `stream` <Stream> 旧的可读流
+- 参数 `stream` \<[Stream](#stream)\> 旧的可读流
 
-在 0.10 版本之前的 Node.js 中，并没有实现当前定义的流模块的 API。(详见兼容性部分)
+在 0.10 版本之前的 Node.js 中，并没有实现当前定义的流模块的 API。(详见
+[兼容性](#与旧版-nodejs-间的兼容性)部分)
 
-在使用旧版的 Node.js 库，使用只有 `stream.pause()` 方法和 `data` 事件发射的流时，
-可以用 `readable.wrap()` 方法将其包装成一个新的可读流。
+在使用旧版的 Node.js 库，使用只有 [stream.pause()](#readablepause) 方法和
+[data](#data-事件) 事件发射的流时，可以用 `readable.wrap()` 方法将其包装成一个新的可读流。
 
 很少会有使用 `readable.wrap()` 方法的时候，它主要是方便与较早的 Node.js 应用和库交互的。
 
@@ -834,7 +835,9 @@ pipe 的目标的话，调用 [stream.pause()](#readablepause) 方法并不能�
 ### stream.Transform 类
 添加于 v0.9.4
 
-Transform 流是输出以某种方式依赖于输入的双工流。作为双工流，他也实现了可读于可写的接口。
+Transform 流是输出以某种方式依赖于输入的[双工流](#stream_class_stream_duplex)。
+作为[双工流](#stream_class_stream_duplex)，他也实现了[可读](#streamreadable-类)
+与[可写](#streamwritable-类)的接口。
 
 常见的 Transform 流包括：
 
@@ -862,12 +865,12 @@ stream 模块的 API 设计使其可以用 JavaScript 的原型继承简单地�
 
 | 用途                | 类               | 实现的方法             |
 | -------------------|------------------|-----------------------|
-| 只读                |Readable          |_read                  |
-| 只写                |Writable          |_write, _writev        |
-| 读写                |Duplex            |_read, _write, _writev |
-| 写数据读结果         |Transform         |_transform, _flush     |
+| 只读                |[Readable](#streamreadable-类)          |[_read](#readable_readsize)                  |
+| 只写                |[Writable](#streamwritable-类)          |[_write](#writable_writechunk-encoding-callback), [_writev](#writable_writevchunks-callback)        |
+| 读写                |[Duplex](#stream_class_stream_duplex)    |[_read](#readable_readsize), [_write](#writable_writechunk-encoding-callback), [_writev](#writable_writevchunks-callback) |
+| 写数据读结果        |[Transform](#streamtransform-类)         |[_transform](#transform_transformchunk-encoding-callback), [_flush](#transform_flushcallback)     |
 
-注意：实现中请不要调用流模块的"公用"方法(在 `使用流涉及的 API` 部分中讲到的)。
+注意：实现中请不要调用流模块的"公用"方法(在 [使用流涉及的 API](#transform_flushcallback) 部分中讲到的)。
 这样做可能会导致消耗流数据是产生不良的副作用。
 
 ## 构造简单的流
