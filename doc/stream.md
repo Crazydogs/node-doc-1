@@ -20,18 +20,19 @@ Node.js 提供了很多原生的流对象，如 HTTP 服务的 request，process
 
 ## 本文档的结构
 
-本文档分为两个主要部分，和一个附加注释部分。
-第一部分介绍了开发者需要在开发中使用 steam 所涉及的 API[链接](#使用流涉及的-api)。
-第二部分介绍了开发者创建自定义 stream 所需要的 API。
+本文档分为两个主要部分，和一个[附加注释](#附加注释)部分。
+第一部分介绍了开发者需要在开发中[使用 steam 所涉及的 API](#使用流涉及的-api)。
+第二部分介绍了开发者[创建自定义 stream 所需要的 API](#创建自定义-stream-所需要的-api)。
 
 ## Stream 的类型
 
 在 Node.js 中 stream 一共有 4 种基本类型
 
-- Readable 可以读取数据的流(如 fs.createReadStream())
-- Writable 可以写入数据的流(如 fs.createWriteStream())
-- Duplex 同时可读又可写的流(如 net.Socket())
-- Transform 在写入和读取过程中对数据进行修改变换的 Duplex 流(如 zlib.createDeflate())
+- [Readable](#streamreadable-类) 可以读取数据的流(如 fs.createReadStream())
+- [Writable](#streamwritable-类) 可以写入数据的流(如 fs.createWriteStream())
+- [Duplex](#streamduplex-类) 同时可读又可写的流(如 net.Socket())
+- [Transform](#streamtransform-类) 在写入和读取过程中对数据进行修改变换的 Duplex
+流(如 zlib.createDeflate())
 
 ### 对象模式
 
