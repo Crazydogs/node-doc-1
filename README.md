@@ -8,7 +8,7 @@
 | Buffer               | 翻译中... |未认领 | 未审校 |
 | C/C++ Addons         | 翻译中... |未认领 | 未审校 |
 | Child Processes      | 翻译中... |未认领 | 未审校 |
-| Cluster              | 翻译中... |未认领 | 未审校 |
+| Cluster              | 翻译中... |@Crazydogs | 未审校 |
 | Command Line Options | 翻译中... |未认领 | 未审校 |
 | Console              | 翻译中... |未认领 | 未审校 |
 | Crypto               | 翻译中... |未认领 | 未审校 |
@@ -30,7 +30,7 @@
 | Query Strings        | 翻译中... |未认领 | 未审校 |
 | Readline             | 翻译中... |未认领 | 未审校 |
 | REPL                 | 翻译中... |未认领 | 未审校 |
-| Stream               | 翻译中... |@Crazydogs | 未审校 |
+| Stream               | 已完成    |@Crazydogs | 未审校 |
 | String Decoder       | 翻译中... |未认领 | 未审校 |
 | Timers               | 翻译中... |未认领 | 未审校 |
 | TLS/SSL              | 翻译中... |未认领 | 未审校 |
